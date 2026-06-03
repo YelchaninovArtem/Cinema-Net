@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+Cinema.Tests/**
+!Cinema.Tests/Cinema.Tests.csproj
+**/*.user
+**/.vs/

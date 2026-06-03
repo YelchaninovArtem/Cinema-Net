@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  background: #070b13;
+  color: #e2e8f0;
+}
+
+.cdk-overlay-pane {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: #1e293b !important;
+    --mdc-dialog-container-shape: 16px;
+  }
+}
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #1e293b !important;
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-title,
+.mat-mdc-dialog-container h2[mat-dialog-title] {
+  color: #f0f0f0 !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #1e293b !important;
+}
+
+.mat-mdc-snack-bar-container.cashier-sale-success-snack {
+  --mdc-snackbar-container-color: #1f2937 !important;
+  --mdc-snackbar-supporting-text-color: #f0fdf4 !important;
+  min-width: min(88vw, 612px) !important;
+
+  .mdc-snackbar__surface {
+    min-height: 82px !important;
+    padding: 18px 24px !important;
+    border: 1px solid rgba(167, 139, 250, 0.36);
+    border-left: 5px solid #22c55e;
+    border-radius: 10px !important;
+    background:
+      linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(99, 102, 241, 0.12)),
+      #1f2937 !important;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34);
+  }
+
+  .mat-mdc-snack-bar-label {
+    font-size: 24px !important;
+    line-height: 1.28 !important;
+    font-weight: 800 !important;
+    letter-spacing: 0;
+    text-align: center;
+  }
+}
+
+.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+.cdk-global-overlay-wrapper {
+  .cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+    background: rgba(0, 0, 0, 0.75) !important;
+  }
+}
+
+.mat-datepicker-content {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+
+  /* Day numbers */
+  .mat-calendar-body-cell-content {
+    color: #e2e8f0 !important;
+  }
+
+  /* Weekday headers (Пн, Вт…) */
+  .mat-calendar-body-label,
+  .mat-calendar-table-header th {
+    color: #94a3b8 !important;
+  }
+
+  /* Month/year nav header */
+  .mat-calendar-controls .mat-calendar-period-button,
+  .mat-calendar-controls button {
+    color: #f1f5f9 !important;
+  }
+
+  /* Prev/next arrows */
+  .mat-calendar-previous-button,
+  .mat-calendar-next-button {
+    color: #94a3b8 !important;
+  }
+
+  /* Hover on day cells */
+  .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+    .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+    background: rgba(99, 102, 241, 0.2) !important;
+  }
+
+  /* Selected day */
+  .mat-calendar-body-selected {
+    background: #6366f1 !important;
+    color: #fff !important;
+  }
+
+  /* Today indicator */
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: #6366f1 !important;
+    color: #818cf8 !important;
+  }
+}
+
+.mat-mdc-select-panel {
+  background: #1e293b !important;
+}
+
+.mat-mdc-option {
+  background: transparent !important;
+  color: #e2e8f0 !important;
+  
+  &:hover:not(.mdc-list-item--disabled) {
+    background: rgba(99, 102, 241, 0.15) !important;
+  }
+  
+  &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+    background: rgba(99, 102, 241, 0.2) !important;
+  }
+}
+
+/* Suppress subscript space on toolbar filter fields so buttons align at center */
+.filter-field .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+/* Dialog Cancel Buttons - More Contrast */
+.dialog-actions .mat-mdc-button,
+.dialog-actions button[mat-button],
+.dialog-actions button.mat-button {
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.1) !important;
+}
+
+.dialog-actions .mat-mdc-button:hover,
+.dialog-actions button[mat-button]:hover,
+.dialog-actions button.mat-button:hover {
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.45) !important;
+  background: rgba(255,255,255,0.18) !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0e17;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d3a4f;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #3d4d63;
+  }
+}
+
+/* Ngx Material Timepicker z-index fix for appearing above modal dialog */
+.timepicker-overlay {
+  z-index: 10000000 !important;
+}
+
+.timepicker-backdrop-overlay {
+  z-index: 10000000 !important;
+}

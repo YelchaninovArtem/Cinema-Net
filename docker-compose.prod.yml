@@ -1,0 +1,88 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}"
+      MSSQL_PID: "Developer"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - cinema-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Cinema.Api/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Server=mssql;Database=Cinema;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Key: "${JWT_KEY:?set JWT_KEY in .env}"
+      Jwt__Issuer: "Cinema.Api"
+      Jwt__Audience: "Cinema.App"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY:-}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:-}"
+      PayPal__ClientId: "${PAYPAL_CLIENT_ID:-}"
+      PayPal__ClientSecret: "${PAYPAL_CLIENT_SECRET:-}"
+      PayPal__WebhookId: "${PAYPAL_WEBHOOK_ID:-}"
+      Email__Host: "${EMAIL_HOST:-}"
+      Email__Port: "${EMAIL_PORT:-587}"
+      Email__User: "${EMAIL_USER:-}"
+      Email__Password: "${EMAIL_PASSWORD:-}"
+      AllowedOrigins__0: "${ALLOWED_ORIGIN:-http://localhost}"
+    networks:
+      - cinema-net
+    depends_on:
+      mssql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    networks:
+      - cinema-net
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - cinema-net
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+networks:
+  cinema-net:
+    driver: bridge
+
+volumes:
+  mssql-data:
