@@ -74,6 +74,12 @@
     "noShowtimes": "No upcoming showtimes.",
     "movieNotFound": "Movie not found.",
     "back": "Back to movies",
+    "detail": {
+      "duration": "Duration",
+      "ageRating": "Age rating",
+      "releaseDate": "Release date",
+      "minutesShort": "min"
+    },
     "filter": {
       "title": "Movie title",
       "city": "City",
@@ -109,11 +115,18 @@
       "taken": "Taken"
     }
   },
+  "seatMap": {
+    "type": {
+      "standard": "Standard",
+      "vip": "VIP",
+      "love": "Reclining seat"
+    }
+  },
   "payment": {
     "title": "Choose payment method",
     "bookingRef": "Booking",
     "total": "Total",
-    "stripe": "Pay by card (Stripe)",
+    "stripe": "Pay by card",
     "paypal": "PayPal",
     "payNow": "Pay now",
     "redirectToPayPal": "Continue to PayPal",
@@ -128,6 +141,9 @@
     "errorNotFound": "Booking not found.",
     "successTitle": "Payment successful!",
     "successMsg": "Your tickets are ready. Check your email or visit My Account.",
+    "successMsgGuest": "Your tickets are ready. Check your email.",
+    "ticketForMovie": "Ticket purchased for the movie",
+    "ticketsForMovie": "Tickets purchased for the movie",
     "viewTickets": "View my tickets",
     "promoPlaceholder": "Promo code",
     "promoApply": "Apply",
@@ -157,7 +173,7 @@
       "Refunded": "Refunded",
       "NotUsed": "Not used"
     },
-    "seats": "seat(s)",
+    "seats": "seats",
     "row": "Row",
     "seat": "Seat",
     "ticketNumber": "Ticket",
@@ -169,6 +185,7 @@
     "payNow": "Pay now",
     "viewShowtime": "View movie",
     "viewSession": "This showtime",
+    "downloadTicket": "Download ticket",
     "refundTicket": "Refund ticket",
     "refunding": "Refunding...",
     "refundSuccess": "Ticket refunded.",
@@ -334,8 +351,7 @@
     "cashierPurchaseNotAllowed": "Cashier accounts cannot buy tickets through customer checkout. Use Offline Sale in the Cashier Panel to sell tickets.",
     "orPayByCard": "or pay by card",
     "cardDetails": "Card details",
-    "backToSeats": "Back to seat selection",
-    "ticketCount": "Ticket(s)"
+    "backToSeats": "Back to seat selection"
   },
   "cashier": {
     "title": "Cashier Panel",
@@ -377,6 +393,8 @@
       "refund": "Refund",
       "confirm": "Confirm refund of {{amount}} UAH for ticket number #{{id}}?",
       "success": "Ticket number #{{id}} refunded successfully.",
+      "completedTitle": "Refund completed",
+      "completedMessage": "Ticket #{{id}} was refunded. Refunded amount: {{amount}} UAH.",
       "cannotRefund": "This ticket cannot be refunded (status: {{status}}).",
       "movie": "Movie",
       "showtime": "Showtime",

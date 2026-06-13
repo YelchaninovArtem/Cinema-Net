@@ -77,7 +77,7 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
         } @else {
           <div class="tickets-list">
             @for (t of tickets(); track t.id) {
-              <div class="tkt" [class.tkt--open]="expandedId() === t.id">
+              <div class="tkt" [class.tkt--open]="isExpanded(t.id)">
                 <div class="tkt-shell">
 
                   <!-- Stub -->
@@ -134,7 +134,7 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
                           }
                         </button>
                       }
-                      <svg class="expand-arrow" [class.open]="expandedId() === t.id"
+                      <svg class="expand-arrow" [class.open]="isExpanded(t.id)"
                            width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
                       </svg>
@@ -148,43 +148,53 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
                 </div>
 
                 <!-- QR detail -->
-                @if (expandedId() === t.id) {
+                @if (isExpanded(t.id)) {
                   <div class="ticket-detail">
-                    @if (loadingDetail()) {
+                    @if (isDetailLoading(t.id)) {
                       <div class="detail-loading"><div class="spinner spinner--sm"></div></div>
-                    } @else if (detail()) {
-                      <div class="qr-wrap">
-                        @if (t.status === 'Paid') {
-                          @if (qrBlobUrl()) {
-                            <div class="qr-img-wrap">
-                              <img [src]="qrBlobUrl()!" [alt]="'QR ' + t.id" class="qr-img" />
-                              <button class="qr-expand-btn" (click)="lightboxTicketId.set(t.id)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                    } @else {
+                      @if (ticketDetail(t.id); as detail) {
+                        <div class="qr-wrap">
+                          @if (t.status === 'Paid') {
+                            @if (ticketQrUrl(t.id); as qrUrl) {
+                              <div class="qr-img-wrap">
+                                <img [src]="qrUrl" [alt]="'QR ' + t.id" class="qr-img" />
+                                <button class="qr-expand-btn" (click)="lightboxTicketId.set(t.id)">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            } @else {
+                              <div class="qr-loading"><div class="spinner spinner--sm"></div></div>
+                            }
+                          } @else {
+                            <div class="qr-status">
+                              {{ 'account.status.' + t.status | translate }}
+                            </div>
+                          }
+                          <div class="qr-info">
+                            <div class="qr-info-row">
+                              <span class="qr-ticket-id">{{ 'account.ticketNumber' | translate }} #{{ detail.id }}</span>
+                            </div>
+                            <div class="qr-info-row">
+                              <span class="qr-label">{{ 'account.row' | translate }} {{ detail.seat.row }}, {{ 'account.seat' | translate }} {{ detail.seat.col }}</span>
+                              <span class="qr-type">{{ detail.seat.type }}</span>
+                            </div>
+                            <div class="qr-info-row">
+                              <span class="qr-hall">{{ detail.hallName }}</span>
+                            </div>
+                            <div class="qr-info-row">
+                              <button class="download-ticket-btn" type="button" (click)="downloadTicket(t, $event)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
                                 </svg>
+                                {{ 'account.downloadTicket' | translate }}
                               </button>
                             </div>
-                          } @else {
-                            <div class="qr-loading"><div class="spinner spinner--sm"></div></div>
-                          }
-                        } @else {
-                          <div class="qr-status">
-                            {{ 'account.status.' + t.status | translate }}
-                          </div>
-                        }
-                        <div class="qr-info">
-                          <div class="qr-info-row">
-                            <span class="qr-ticket-id">{{ 'account.ticketNumber' | translate }} #{{ detail()!.id }}</span>
-                          </div>
-                          <div class="qr-info-row">
-                            <span class="qr-label">{{ 'account.seat' | translate:{row: detail()!.seat.row, col: detail()!.seat.col} }}</span>
-                            <span class="qr-type">{{ detail()!.seat.type }}</span>
-                          </div>
-                          <div class="qr-info-row">
-                            <span class="qr-hall">{{ detail()!.hallName }}</span>
                           </div>
                         </div>
-                      </div>
+                      }
                     }
                   </div>
                 }
@@ -322,7 +332,7 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
     </div>
 
     <!-- QR Lightbox -->
-    @if (lightboxTicketId() !== null) {
+    @if (lightboxTicketId() !== null && ticketQrUrl(lightboxTicketId()!); as lightboxQrUrl) {
       <div class="qr-lightbox" (click)="closeLightbox()">
         <div class="qr-lightbox-inner" (click)="$event.stopPropagation()">
           <button class="qr-lightbox-close" (click)="closeLightbox()">
@@ -330,7 +340,7 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
           </button>
-          <img [src]="qrBlobUrl()!" alt="QR fullscreen" class="qr-lightbox-img" />
+          <img [src]="lightboxQrUrl" alt="QR fullscreen" class="qr-lightbox-img" />
           <p class="qr-lightbox-hint">{{ 'account.qrHint' | translate }}</p>
         </div>
       </div>
@@ -581,6 +591,19 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
     }
     .qr-type { font-size: 11px; color: #4a6080; text-transform: uppercase; letter-spacing: 0.06em; }
     .qr-hall { font-size: 12px; color: #4a6080; }
+    .download-ticket-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      min-height: 34px; padding: 0 13px; border-radius: 7px;
+      border: 1px solid rgba(99,102,241,0.36);
+      background: rgba(99,102,241,0.12); color: #a5b4fc;
+      font-size: 12px; font-weight: 800; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .download-ticket-btn:hover {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.58);
+      color: #c7d2fe;
+    }
 
     /* QR Lightbox */
     .qr-lightbox {
@@ -735,14 +758,14 @@ export class AccountComponent implements OnInit {
   readonly favorites       = signal<FavoriteSummary[]>([]);
   readonly reviews         = signal<UserReviewDto[]>([]);
   readonly loyaltyData     = signal<LoyaltyBalance | null>(null);
-  readonly detail          = signal<TicketDetail | null>(null);
-  readonly expandedId      = signal<number | null>(null);
+  readonly details         = signal<Record<number, TicketDetail>>({});
+  readonly expandedIds     = signal<Set<number>>(new Set());
   readonly loadingTickets  = signal(true);
   readonly loadingFavorites = signal(true);
   readonly loadingReviews  = signal(true);
   readonly loadingLoyalty  = signal(true);
-  readonly loadingDetail   = signal(false);
-  readonly qrBlobUrl       = signal<string | null>(null);
+  readonly loadingDetails  = signal<Set<number>>(new Set());
+  readonly qrBlobUrls      = signal<Record<number, string>>({});
   readonly lightboxTicketId = signal<number | null>(null);
   readonly refundingTicketId = signal<number | null>(null);
   readonly ticketActionMessage = signal<{ ticketId: number | null; key: string; kind: 'success' | 'error' }>({
@@ -775,29 +798,73 @@ export class AccountComponent implements OnInit {
 
   setTab(tab: Tab): void { this.activeTab.set(tab); }
 
+  isExpanded(id: number): boolean {
+    return this.expandedIds().has(id);
+  }
+
+  ticketDetail(id: number): TicketDetail | null {
+    return this.details()[id] ?? null;
+  }
+
+  isDetailLoading(id: number): boolean {
+    return this.loadingDetails().has(id);
+  }
+
+  ticketQrUrl(id: number): string | null {
+    return this.qrBlobUrls()[id] ?? null;
+  }
+
   toggleExpand(id: number): void {
-    if (this.expandedId() === id) {
-      this.expandedId.set(null);
-      this.detail.set(null);
-      this.qrBlobUrl.set(null);
+    if (this.isExpanded(id)) {
+      this.expandedIds.update(ids => {
+        const next = new Set(ids);
+        next.delete(id);
+        return next;
+      });
       return;
     }
-    this.expandedId.set(id);
-    this.detail.set(null);
-    this.qrBlobUrl.set(null);
-    this.loadingDetail.set(true);
+
+    this.expandedIds.update(ids => new Set(ids).add(id));
+    if (this.ticketDetail(id)) return;
+
+    this.loadingDetails.update(ids => new Set(ids).add(id));
 
     this.accountSvc.getTicketDetail(id).subscribe({
       next: d => {
-        this.detail.set(d);
-        this.loadingDetail.set(false);
+        this.details.update(details => ({ ...details, [id]: d }));
+        this.loadingDetails.update(ids => {
+          const next = new Set(ids);
+          next.delete(id);
+          return next;
+        });
         if (d.status === 'Paid') {
           this.accountSvc.getQrBlob(id).subscribe({
-            next: url => this.qrBlobUrl.set(url),
+            next: url => this.qrBlobUrls.update(urls => ({ ...urls, [id]: url })),
           });
         }
       },
-      error: () => this.loadingDetail.set(false),
+      error: () => this.loadingDetails.update(ids => {
+        const next = new Set(ids);
+        next.delete(id);
+        return next;
+      }),
+    });
+  }
+
+  downloadTicket(ticket: TicketSummary, event: Event): void {
+    event.stopPropagation();
+
+    this.accountSvc.getTicketPdf(ticket.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ticket-${ticket.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      },
     });
   }
 
@@ -823,10 +890,17 @@ export class AccountComponent implements OnInit {
         this.refundingTicketId.set(null);
         this.tickets.update(ts => ts.map(t =>
           t.id === ticket.id ? { ...t, status: 'Refunded' as const } : t));
-        const currentDetail = this.detail();
-        if (currentDetail?.id === ticket.id) {
-          this.detail.set({ ...currentDetail, status: 'Refunded' });
-          this.qrBlobUrl.set(null);
+        const currentDetail = this.ticketDetail(ticket.id);
+        if (currentDetail) {
+          this.details.update(details => ({
+            ...details,
+            [ticket.id]: { ...currentDetail, status: 'Refunded' },
+          }));
+          this.qrBlobUrls.update(urls => {
+            const next = { ...urls };
+            delete next[ticket.id];
+            return next;
+          });
         }
         this.ticketActionMessage.set({
           ticketId: result.ticketId,

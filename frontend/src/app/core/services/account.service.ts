@@ -32,6 +32,10 @@ export class AccountService {
       .pipe(map(blob => URL.createObjectURL(blob)));
   }
 
+  getTicketPdf(ticketId: number): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/tickets/${ticketId}/pdf`, { responseType: 'blob' });
+  }
+
   refundTicket(ticketId: number): Observable<AccountRefundResult> {
     return this.http.post<AccountRefundResult>(`${this.base}/tickets/${ticketId}/refund`, {});
   }

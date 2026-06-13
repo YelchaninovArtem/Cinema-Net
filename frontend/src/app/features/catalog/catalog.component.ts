@@ -8,12 +8,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { MovieService } from '../../core/services/movie.service';
 import { CinemaService } from '../../core/services/cinema.service';
 import { MovieCardComponent } from '../../shared/movie-card/movie-card.component';
 import { Genre, MovieSummary } from '../../core/models/catalog.models';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-catalog',
@@ -105,9 +106,9 @@ import { Genre, MovieSummary } from '../../core/models/catalog.models';
   styles: [`
     .catalog-shell {
       position: relative;
-      max-width: 1200px;
+      max-width: 1380px;
       margin: 0 auto;
-      padding: 24px 16px;
+      padding: 18px 16px 24px;
       color: #e2e8f0;
       font-family: 'DM Sans', sans-serif;
     }
@@ -123,15 +124,17 @@ import { Genre, MovieSummary } from '../../core/models/catalog.models';
 
     .filters-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      flex-wrap: nowrap;
+      gap: 9px;
       align-items: center;
+      width: 100%;
       margin-bottom: 28px;
     }
 
     /* Темна тема для Material form fields через CSS custom properties */
     .filter-field {
-      min-width: 160px;
+      min-width: 0;
+      flex: 1 1 0;
       --mdc-outlined-text-field-label-text-color: #94a3b8;
       --mdc-outlined-text-field-input-text-color: #f1f5f9;
       --mdc-outlined-text-field-outline-color: rgba(255,255,255,0.18);
@@ -139,20 +142,62 @@ import { Genre, MovieSummary } from '../../core/models/catalog.models';
       --mdc-outlined-text-field-focus-outline-color: #6366f1;
       --mdc-outlined-text-field-focus-label-text-color: #818cf8;
       --mdc-outlined-text-field-container-shape: 10px;
+      --mdc-outlined-text-field-container-height: 57px;
       --mat-select-enabled-arrow-color: #94a3b8;
       --mat-select-enabled-trigger-text-color: #f1f5f9;
       --mat-select-placeholder-text-color: #94a3b8;
-      --mat-form-field-container-height: 50px;
+      --mat-form-field-container-height: 57px;
     }
 
     .filter-field--search {
-      min-width: 240px;
-      flex: 1 1 260px;
+      flex-grow: 1.15;
+    }
+
+    :host ::ng-deep .filter-field .mat-mdc-text-field-wrapper,
+    :host ::ng-deep .filter-field .mat-mdc-form-field-flex {
+      height: 57px;
+    }
+
+    :host ::ng-deep .filter-field .mat-mdc-form-field-infix {
+      display: flex;
+      align-items: center;
+      min-height: 57px;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    :host ::ng-deep .filter-field .mat-mdc-floating-label {
+      top: 28px;
+    }
+
+    :host ::ng-deep .filter-field input.mat-mdc-input-element {
+      text-align: left;
+    }
+
+    :host ::ng-deep .filter-field .mat-datepicker-toggle .mat-mdc-icon-button {
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+    }
+
+    :host ::ng-deep .filter-field .mat-mdc-select-trigger,
+    :host ::ng-deep .filter-field .mat-mdc-select-value {
+      height: 57px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    :host ::ng-deep .filter-field .mat-mdc-select-arrow-wrapper {
+      position: absolute;
+      right: 12px;
     }
 
     .apply-btn {
-      height: 50px;
-      padding: 0 24px;
+      flex: 0 0 104px;
+      height: 57px;
+      padding: 0 18px;
       border-radius: 10px;
       border: none;
       background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
@@ -168,8 +213,9 @@ import { Genre, MovieSummary } from '../../core/models/catalog.models';
     .apply-btn:hover { opacity: 0.88; box-shadow: 0 4px 18px rgba(99,102,241,0.5); }
 
     .reset-btn {
-      height: 50px;
-      padding: 0 20px;
+      flex: 0 0 86px;
+      height: 57px;
+      padding: 0 15px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.18);
       background: rgba(255,255,255,0.07);
@@ -185,6 +231,22 @@ import { Genre, MovieSummary } from '../../core/models/catalog.models';
       background: rgba(255,255,255,0.13);
       border-color: rgba(255,255,255,0.35);
       color: #f1f5f9;
+    }
+
+    @media (max-width: 760px) {
+      .filters-row {
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .filter-field {
+        flex-basis: 132px;
+        flex-shrink: 0;
+      }
+
+      .filter-field--search {
+        flex-basis: 180px;
+      }
     }
 
     .movie-grid {
@@ -230,6 +292,8 @@ export class CatalogComponent implements OnInit {
   private readonly cinemaSvc = inject(CinemaService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly movies = signal<MovieSummary[]>([]);
   readonly cities = signal<string[]>([]);
@@ -259,7 +323,7 @@ export class CatalogComponent implements OnInit {
           this.refreshing.set(true);
         }
       }),
-      switchMap(filters => this.movieSvc.getMovies(filters).pipe(
+      switchMap(filters => this.movieSvc.getMovies(filters, this.language.currentLang).pipe(
         catchError(() => of(this.movies()))
       )),
       takeUntilDestroyed(this.destroyRef),
@@ -269,19 +333,11 @@ export class CatalogComponent implements OnInit {
       this.refreshing.set(false);
     });
 
-    forkJoin({
-      movies:  this.movieSvc.getMovies(),
-      cinemas: this.cinemaSvc.getCinemas(),
-      genres:  this.cinemaSvc.getGenres(),
-    }).subscribe({
-      next: ({ movies, cinemas, genres }) => {
-        this.movies.set(movies);
-        this.cities.set([...new Set(cinemas.map(c => c.city))].sort());
-        this.genres.set(genres);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.loadCatalogData();
+
+    this.language.lang$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(lang => this.loadCatalogData(true, lang));
   }
 
   applyFilters(): void {
@@ -290,7 +346,7 @@ export class CatalogComponent implements OnInit {
     } else {
       this.refreshing.set(true);
     }
-    this.movieSvc.getMovies(this.buildMovieFilters()).subscribe({
+    this.movieSvc.getMovies(this.buildMovieFilters(), this.language.currentLang).subscribe({
       next: movies => {
         this.movies.set(movies);
         this.loading.set(false);
@@ -305,6 +361,32 @@ export class CatalogComponent implements OnInit {
 
   resetFilters(): void {
     this.filters.reset({ title: '', city: '', date: null, format: '', genreId: null });
+  }
+
+  private loadCatalogData(refresh = false, lang = this.language.currentLang): void {
+    if (refresh && this.movies().length > 0) {
+      this.refreshing.set(true);
+    } else {
+      this.loading.set(true);
+    }
+
+    forkJoin({
+      movies:  this.movieSvc.getMovies(this.buildMovieFilters(), lang),
+      cinemas: this.cinemaSvc.getCinemas(),
+      genres:  this.cinemaSvc.getGenres(lang),
+    }).subscribe({
+      next: ({ movies, cinemas, genres }) => {
+        this.movies.set(movies);
+        this.cities.set([...new Set(cinemas.map(c => c.city))].sort());
+        this.genres.set(genres);
+        this.loading.set(false);
+        this.refreshing.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.refreshing.set(false);
+      },
+    });
   }
 
   private toDateString(d: Date): string {

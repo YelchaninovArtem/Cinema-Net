@@ -230,7 +230,16 @@ import { LocalizedDatePipe } from '../../shared/localized-date.pipe';
           </div>
 
           @if (refundTicket()) {
-            <mat-card class="ticket-card">
+            <mat-card class="ticket-card refund-ticket-card" [class.status-refunded]="refundResult()">
+              @if (refundResult()) {
+                <div class="refund-success-banner">
+                  <span class="refund-success-icon"><mat-icon>check</mat-icon></span>
+                  <div>
+                    <strong>{{ 'cashier.refunds.completedTitle' | translate }}</strong>
+                    <span>{{ 'cashier.refunds.completedMessage' | translate : { id: refundResult()!.ticketId, amount: (refundResult()!.refundedAmount | number:'1.2-2') } }}</span>
+                  </div>
+                </div>
+              }
               <mat-card-header>
                 <mat-card-title>{{ refundTicket()!.movieTitle }}</mat-card-title>
                 <mat-card-subtitle>{{ refundTicket()!.cinemaBranchName }} - {{ refundTicket()!.hallName }}</mat-card-subtitle>
@@ -239,20 +248,30 @@ import { LocalizedDatePipe } from '../../shared/localized-date.pipe';
                 <div class="ticket-details">
                   <div class="detail-row"><span class="label">{{ 'cashier.refunds.showtime' | translate }}</span><span>{{ refundTicket()!.showtimeUtc | localizedDate:'dd.MM.yyyy HH:mm' }}</span></div>
                   <div class="detail-row"><span class="label">{{ 'cashier.refunds.seat' | translate }}</span><span>{{ 'cashier.ticket.row' | translate }} {{ refundTicket()!.row }}, {{ 'cashier.ticket.col' | translate }} {{ refundTicket()!.col }}</span></div>
-                  <div class="detail-row"><span class="label">{{ 'cashier.refunds.status' | translate }}</span><mat-chip>{{ 'account.status.' + refundTicket()!.status | translate }}</mat-chip></div>
+                  <div class="detail-row">
+                    <span class="label">{{ 'cashier.refunds.status' | translate }}</span>
+                    <mat-chip [class.chip-refunded]="refundTicket()!.status === 'Refunded'">
+                      @if (refundTicket()!.status === 'Refunded') {
+                        <mat-icon>check_circle</mat-icon>
+                      }
+                      {{ 'account.status.' + refundTicket()!.status | translate }}
+                    </mat-chip>
+                  </div>
                   <div class="detail-row"><span class="label">{{ 'cashier.refunds.amount' | translate }}</span><span class="amount">{{ refundTicket()!.finalAmount | number:'1.2-2' }} UAH</span></div>
                 </div>
               </mat-card-content>
-              <mat-card-actions>
-                @if (canRefund(refundTicket()!)) {
+              @if (!refundResult()) {
+                <mat-card-actions>
+                  @if (canRefund(refundTicket()!)) {
                   <button mat-flat-button color="warn" class="action-button loading-button" (click)="doRefund()" [disabled]="refundLoading()">
                     @if (refundLoading()) { <mat-spinner diameter="18"></mat-spinner> }
                     <span [class.is-hidden]="refundLoading()">{{ 'cashier.refunds.refund' | translate }}</span>
                   </button>
-                } @else {
-                  <p class="cannot-refund">{{ 'cashier.refunds.cannotRefund' | translate : { status: refundTicket()!.status } }}</p>
-                }
-              </mat-card-actions>
+                  } @else {
+                    <p class="cannot-refund">{{ 'cashier.refunds.cannotRefund' | translate : { status: refundTicket()!.status } }}</p>
+                  }
+                </mat-card-actions>
+              }
             </mat-card>
           }
 
@@ -289,6 +308,7 @@ import { LocalizedDatePipe } from '../../shared/localized-date.pipe';
     .ticket-card { max-width: 520px; margin: 20px auto 0; background: rgba(255,255,255,0.06) !important; border-radius: 12px !important; border: 1px solid rgba(255,255,255,0.1); }
     .ticket-card.status-paid { border-color: rgba(34,197,94,0.4); }
     .ticket-card.status-used { border-color: rgba(251,191,36,0.4); }
+    .ticket-card.status-refunded { border-color: rgba(34,197,94,0.48); box-shadow: 0 12px 30px rgba(16,185,129,0.1); }
     ::ng-deep .ticket-card mat-card-title { color: #f1f5f9 !important; font-size: 1.1rem; }
     ::ng-deep .ticket-card mat-card-subtitle { color: rgba(255,255,255,0.5) !important; }
     .icon-ok { color: #22c55e !important; }
@@ -300,6 +320,22 @@ import { LocalizedDatePipe } from '../../shared/localized-date.pipe';
     .amount { font-weight: 600; color: #a78bfa; }
     .chip-paid { background: rgba(34,197,94,0.2) !important; color: #22c55e !important; }
     .chip-used { background: rgba(251,191,36,0.2) !important; color: #fbbf24 !important; }
+    ::ng-deep .chip-refunded {
+      --mdc-chip-label-text-color: #bbf7d0;
+      --mdc-chip-with-icon-icon-color: #4ade80;
+      background: rgba(34,197,94,0.2) !important;
+      color: #bbf7d0 !important;
+      border: 1px solid rgba(74,222,128,0.38);
+    }
+    ::ng-deep .chip-refunded .mdc-evolution-chip__text-label,
+    ::ng-deep .chip-refunded .mat-mdc-chip-action-label { display: inline-flex; align-items: center; color: #bbf7d0 !important; font-weight: 700; line-height: 1; }
+    ::ng-deep .chip-refunded .mat-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin: 0 5px 0 0; font-size: 16px; line-height: 16px; vertical-align: middle; color: #4ade80 !important; }
+    .refund-success-banner { display: flex; align-items: center; gap: 12px; margin: 14px 14px 0; padding: 14px 16px; border: 1px solid rgba(74,222,128,0.28); border-radius: 10px; background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(16,185,129,0.08)); color: #dcfce7; }
+    .refund-success-banner > div { display: grid; gap: 3px; min-width: 0; }
+    .refund-success-banner strong { color: #86efac; font-size: 0.95rem; }
+    .refund-success-banner span:not(.refund-success-icon) { color: rgba(220,252,231,0.78); font-size: 0.84rem; line-height: 1.4; }
+    .refund-success-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #22c55e; color: #052e16; }
+    .refund-success-icon mat-icon { width: 20px; height: 20px; font-size: 20px; font-weight: 700; }
     .scan-error { display: flex; align-items: center; gap: 8px; color: #f87171; background: rgba(239,68,68,0.1); padding: 12px 16px; border-radius: 8px; margin-top: 16px; max-width: 520px; margin-inline: auto; }
     ::ng-deep .ticket-card .mat-mdc-card-actions { padding: 12px 16px 16px; gap: 8px; display: flex; }
     .sale-form { display: flex; flex-direction: column; gap: 4px; max-width: 480px; margin-bottom: 20px; }
@@ -345,8 +381,10 @@ import { LocalizedDatePipe } from '../../shared/localized-date.pipe';
     ::ng-deep .loading-button[disabled] { opacity: 0.82; }
     ::ng-deep .loading-button mat-spinner circle { stroke: #f8fafc !important; }
     .no-data { color: rgba(255,255,255,0.4); margin-top: 20px; }
-    .refund-search { display: flex; gap: 12px; align-items: center; max-width: 480px; margin-bottom: 20px; }
+    .refund-search { display: flex; gap: 12px; align-items: center; max-width: 600px; margin-bottom: 20px; }
     .refund-search mat-form-field { flex: 1; }
+    .refund-search ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+    .refund-search button { min-width: 170px; height: 52px; align-self: center; }
     .cannot-refund { color: #f87171; font-size: 0.85rem; margin: 0; padding: 8px 16px; }
     .checkin-warning { color: #fbbf24; font-size: 0.85rem; margin: 0; padding: 0 16px 16px; }
     ::ng-deep mat-form-field .mat-mdc-text-field-wrapper { background: rgba(255,255,255,0.06) !important; }
@@ -408,6 +446,7 @@ export class CashierComponent implements OnInit, OnDestroy {
   refundTicket = signal<VerifyTicketResult | null>(null);
   refundError = signal<string | null>(null);
   refundLoading = signal(false);
+  refundResult = signal<RefundResult | null>(null);
 
   async ngOnInit(): Promise<void> {
     await this.loadShowtimes();
@@ -627,6 +666,7 @@ export class CashierComponent implements OnInit, OnDestroy {
   async findTicket(): Promise<void> {
     if (!this.refundTicketId) return;
     this.refundTicket.set(null);
+    this.refundResult.set(null);
     this.refundError.set(null);
     this.refundLoading.set(true);
     try {
@@ -645,11 +685,11 @@ export class CashierComponent implements OnInit, OnDestroy {
     if (!ticket) return;
     this.refundLoading.set(true);
     try {
-      await lastValueFrom<RefundResult>(this.cashier.refundTicket(ticket.ticketId));
+      const result = await lastValueFrom<RefundResult>(this.cashier.refundTicket(ticket.ticketId));
       const msg = await lastValueFrom<string>(this.translate.get('cashier.refunds.success', { id: ticket.ticketId }));
       this.snack.open(msg, '', { duration: 4000, panelClass: 'snack-success' });
-      this.refundTicket.set(null);
-      this.refundTicketId = null;
+      this.refundResult.set(result);
+      this.refundTicket.set({ ...ticket, status: result.status || 'Refunded' });
     } catch (err: any) {
       const msg = err?.error?.error ?? await lastValueFrom<string>(this.translate.get('common.error'));
       this.snack.open(msg, '', { duration: 4000, panelClass: 'snack-error' });

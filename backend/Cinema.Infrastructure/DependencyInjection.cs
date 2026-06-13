@@ -25,6 +25,7 @@ using Cinema.Infrastructure.Reports;
 using Cinema.Infrastructure.Reviews;
 using Cinema.Infrastructure.PromoCodes;
 using Cinema.Infrastructure.Loyalty;
+using Cinema.Infrastructure.Localization;
 using Cinema.Infrastructure.Email;
 using Cinema.Infrastructure.Identity;
 using Cinema.Infrastructure.Payments;
@@ -42,6 +43,7 @@ using Polly;
 using Polly.Extensions.Http;
 using Stripe;
 using System.Net;
+using Cinema.Application.Localization;
 
 namespace Cinema.Infrastructure;
 
@@ -140,8 +142,17 @@ public static class DependencyInjection
         services.AddSingleton<IStripeWebhookVerifier, StripeWebhookVerifier>();
         services.AddScoped<IPayPalWebhookVerifier, PayPalWebhookVerifier>();
 
-        // Register memory cache for exchange rate caching
+        // Register memory cache for exchange rates and localized movie text
         services.AddMemoryCache();
+
+        var translationSection = configuration.GetSection("Translation");
+        services.Configure<TranslationOptions>(translationSection);
+        services.AddHttpClient<IContentLocalizationService, ContentLocalizationService>((_, client) =>
+        {
+            var baseUrl = translationSection["BaseUrl"] ?? "https://translate.googleapis.com";
+            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
 
         // PayPal використовує окремий HttpClient (може мати timeout, base address тощо)
         services.AddHttpClient<PayPalProvider>(client =>

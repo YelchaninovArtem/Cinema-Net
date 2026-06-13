@@ -91,4 +91,19 @@ public sealed class TicketsController : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
         catch (UnauthorizedAccessException) { return Forbid(); }
     }
+
+    /// <summary>Завантажити PDF квитка (тільки для власника).</summary>
+    [HttpGet("{id:int}/pdf")]
+    [Authorize]
+    public async Task<IActionResult> GetTicketPdf(int id, CancellationToken ct)
+    {
+        var userId = User.GetUserId();
+        try
+        {
+            var pdf = await _accountService.GetTicketPdfAsync(id, userId, ct);
+            return File(pdf, "application/pdf", $"ticket-{id}.pdf");
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+    }
 }

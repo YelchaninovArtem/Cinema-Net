@@ -11,12 +11,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import { loadStripe, Stripe, StripeCardElement } from '@stripe/stripe-js';
 import { environment } from '../../../../environments/environment';
 import { TicketService } from '../../../core/services/ticket.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { AccountService } from '../../../core/services/account.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LanguageService } from '../../../core/services/language.service';
 import { SeatMapComponent } from '../../../shared/seat-map/seat-map.component';
 import { SeatCoord, SeatMap, CreateTicketsResponse } from '../../../core/models/ticket.models';
 import { LoyaltyBalance } from '../../../core/models/account.models';
@@ -88,7 +90,7 @@ type Step = 'seats' | 'payment';
             <div class="buy-summary">
               <div class="buy-summary-left">
                 <span class="buy-seats-count">{{ selectedSeats().length }}</span>
-                <span class="buy-seats-label">{{ 'buy.seatsSelected' | translate }}</span>
+                <span class="buy-seats-label">{{ selectedSeatsLabel() }}</span>
               </div>
 
               <div class="buy-summary-right">
@@ -452,16 +454,40 @@ type Step = 'seats' | 'payment';
     }
     .buy-seats-label { font-size: 13px; color: #6b7a99; }
     .buy-summary-right {
-      display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) auto;
+      align-items: start;
+      justify-content: end;
+      gap: 10px 14px;
     }
     .buy-total {
+      grid-column: 1 / -1;
+      justify-self: end;
       font-family: 'Syne', sans-serif;
       font-size: 28px; font-weight: 800; color: #f1f5f9;
     }
 
-    .buy-guest-form { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-    .buy-field { width: 200px; }
+    .buy-guest-form {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      align-self: start;
+    }
+    .buy-field {
+      width: 100%;
+      min-width: 260px;
+      --mat-form-field-container-height: 44px;
+      --mat-form-field-container-vertical-padding: 10px;
+    }
     .buy-field ::ng-deep .mat-mdc-text-field-wrapper { background: rgba(255,255,255,0.04) !important; }
+    .buy-field ::ng-deep .mat-mdc-form-field-infix {
+      min-height: 44px;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+    .buy-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      min-height: 20px;
+    }
     .buy-field ::ng-deep .mdc-notched-outline__leading,
     .buy-field ::ng-deep .mdc-notched-outline__notch,
     .buy-field ::ng-deep .mdc-notched-outline__trailing { border-color: rgba(255,255,255,0.15) !important; }
@@ -480,6 +506,10 @@ type Step = 'seats' | 'payment';
       transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
       box-shadow: 0 4px 20px rgba(212,168,83,0.35);
       white-space: nowrap;
+      min-height: 44px;
+      align-self: start;
+      grid-column: 2;
+      justify-self: end;
     }
     .buy-cta:hover:not(:disabled) {
       transform: translateY(-2px);
@@ -699,10 +729,19 @@ type Step = 'seats' | 'payment';
 
     @media (max-width: 600px) {
       .buy-summary { flex-direction: column; }
-      .buy-summary-right { align-items: stretch; }
+      .buy-summary-right {
+        width: 100%;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .buy-total { grid-column: 1; }
       .buy-guest-form { flex-direction: column; }
       .buy-field { width: 100%; }
-      .buy-cta { justify-content: center; }
+      .buy-cta {
+        grid-column: 1;
+        justify-self: stretch;
+        justify-content: center;
+      }
     }
   `],
 })
@@ -715,6 +754,7 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly ticketSvc   = inject(TicketService);
   private readonly paySvc      = inject(PaymentService);
   private readonly accountSvc  = inject(AccountService);
+  private readonly language    = inject(LanguageService);
   readonly auth                = inject(AuthService);
   private readonly fb          = inject(FormBuilder);
 
@@ -722,6 +762,8 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly seatMap       = signal<SeatMap | null>(null);
   readonly loading       = signal(true);
   readonly selectedSeats = signal<SeatCoord[]>([]);
+  readonly currentLang   = signal(this.language.currentLang);
+  readonly selectedSeatsLabel = computed(() => this.seatCountLabel(this.selectedSeats().length));
   readonly seatError     = signal<string | null>(null);
   readonly submittingTickets = signal(false);
   readonly step          = signal<Step>('seats');
@@ -758,6 +800,7 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
   private stripe: Stripe | null = null;
   private cardEl: StripeCardElement | null = null;
   private googlePayClient: google.payments.api.PaymentsClient | null = null;
+  private langSub?: Subscription;
 
   readonly baseTotal = computed(() => {
     const map = this.seatMap();
@@ -785,7 +828,22 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
     Math.round(this.finalTotal() * this.uahToUsdRate() * 100) / 100
   );
 
+  private seatCountLabel(count: number): string {
+    const lang = this.currentLang();
+    if (lang !== 'uk') {
+      return count === 1 ? 'seat selected' : 'seats selected';
+    }
+
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'місце вибрано';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'місця вибрано';
+    return 'місць вибрано';
+  }
+
   ngOnInit(): void {
+    this.langSub = this.language.lang$.subscribe(lang => this.currentLang.set(lang));
+
     const id = Number(this.route.snapshot.paramMap.get('showtimeId'));
     this.ticketSvc.getSeatMap(id).subscribe({
       next:  map => { this.seatMap.set(map); this.loading.set(false); },
@@ -805,6 +863,7 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cardEl?.unmount();
+    this.langSub?.unsubscribe();
   }
 
   onSeatsSelected(seats: SeatCoord[]): void {
@@ -952,7 +1011,14 @@ export class BuyConfirmComponent implements OnInit, AfterViewInit, OnDestroy {
   setTab(tab: PaymentTab): void {
     this.activeTab.set(tab);
     this.payError.set(null);
-    if (tab === 'stripe') setTimeout(() => this.mountStripeCard(), 0);
+    if (tab === 'stripe') {
+      setTimeout(() => {
+        this.mountStripeCard();
+        if (this.googlePayAvailable()) {
+          this.renderGooglePayButton();
+        }
+      }, 0);
+    }
   }
 
   private mountStripeCard(): void {

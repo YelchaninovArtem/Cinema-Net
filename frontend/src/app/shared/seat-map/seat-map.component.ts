@@ -20,7 +20,7 @@ interface SeatCell {
 
       <!-- Legend -->
       <div class="sm-legend">
-        <span class="leg"><span class="dot std"></span>{{ 'booking.legend.available' | translate }}</span>
+        <span class="leg"><span class="dot std"></span>{{ 'seatMap.type.standard' | translate }}</span>
         <span class="leg"><span class="dot vip"></span>{{ 'booking.legend.vip' | translate }}</span>
         <span class="leg"><span class="dot love"></span>{{ 'booking.legend.love' | translate }}</span>
         <span class="leg"><span class="dot sel"></span>{{ 'booking.legend.selected' | translate }}</span>
@@ -310,6 +310,15 @@ export class SeatMapComponent {
   seatTitle(cell: SeatCell): string {
     const row = this.translate.instant('account.row');
     const seat = this.translate.instant('account.seat');
-    return `${cell.type} · ${row} ${cell.row}, ${seat} ${cell.col}`;
+    return `${this.seatTypeName(cell.type)} · ${row} ${cell.row}, ${seat} ${cell.col}`;
+  }
+
+  private seatTypeName(type: string): string {
+    const key = type.toLowerCase() === 'vip'
+      ? 'seatMap.type.vip'
+      : type.toLowerCase() === 'love'
+        ? 'seatMap.type.love'
+        : 'seatMap.type.standard';
+    return this.translate.instant(key);
   }
 }

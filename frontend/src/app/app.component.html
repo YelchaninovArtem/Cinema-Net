@@ -94,24 +94,38 @@
 
   <!-- Мобільне меню -->
   @if (mobileOpen) {
-    <div class="mobile-menu" (click)="mobileOpen = false">
-      <a class="mobile-link" routerLink="/catalog">{{ 'nav.movies' | translate }}</a>
-      @if (auth.isLoggedIn()) {
-        <a class="mobile-link" routerLink="/account">{{ 'nav.account' | translate }}</a>
-      }
-      @if (auth.hasRole('Admin')) {
-        <a class="mobile-link" routerLink="/admin">{{ 'nav.admin' | translate }}</a>
-      }
-      @if (auth.hasRole('Cashier')) {
-        <a class="mobile-link" routerLink="/cashier">{{ 'nav.cashier' | translate }}</a>
-      }
-      <div class="mobile-divider"></div>
-      @if (auth.isLoggedIn()) {
-        <button class="mobile-link" (click)="auth.logout()">{{ 'nav.logout' | translate }}</button>
-      } @else {
-        <a class="mobile-link" routerLink="/auth/login">{{ 'nav.login' | translate }}</a>
-        <a class="mobile-link" routerLink="/auth/register">{{ 'nav.register' | translate }}</a>
-      }
+    <div class="mobile-menu-shell">
+      <div class="mobile-menu" (click)="mobileOpen = false">
+        <a class="mobile-link" routerLink="/catalog">{{ 'nav.movies' | translate }}</a>
+        @if (auth.isLoggedIn()) {
+          <a class="mobile-link" routerLink="/account">{{ 'nav.account' | translate }}</a>
+        }
+        @if (auth.hasRole('Admin')) {
+          <a class="mobile-link" routerLink="/admin">{{ 'nav.admin' | translate }}</a>
+        }
+        @if (auth.hasRole('Cashier')) {
+          <a class="mobile-link" routerLink="/cashier">{{ 'nav.cashier' | translate }}</a>
+        }
+        <div class="mobile-divider"></div>
+        <div class="mobile-menu-footer" (click)="$event.stopPropagation()">
+          <div class="lang-switcher">
+            @for (lang of languages; track lang) {
+              <button class="lang-btn" [class.active]="currentLang === lang"
+                      (click)="switchLanguage(lang)">
+                {{ lang === 'uk' ? 'UA' : lang.toUpperCase() }}
+              </button>
+            }
+          </div>
+          @if (auth.isLoggedIn()) {
+            <button class="mobile-link mobile-logout" (click)="auth.logout(); mobileOpen = false">{{ 'nav.logout' | translate }}</button>
+          } @else {
+            <div class="mobile-auth-actions" (click)="mobileOpen = false">
+              <a class="mobile-link" routerLink="/auth/login">{{ 'nav.login' | translate }}</a>
+              <a class="mobile-link mobile-link--primary" routerLink="/auth/register">{{ 'nav.register' | translate }}</a>
+            </div>
+          }
+        </div>
+      </div>
     </div>
   }
 </nav>

@@ -7,6 +7,7 @@ public interface IAccountService
     Task<IReadOnlyCollection<TicketSummaryDto>> GetUserTicketsAsync(string userId, CancellationToken ct = default);
     Task<TicketDetailDto?> GetTicketDetailAsync(int ticketId, string userId, CancellationToken ct = default);
     Task<Stream> GetTicketQrAsync(int ticketId, string userId, CancellationToken ct = default);
+    Task<byte[]> GetTicketPdfAsync(int ticketId, string userId, CancellationToken ct = default);
     Task<AccountRefundResult> RefundTicketAsync(int ticketId, string userId, CancellationToken ct = default);
 
     Task<IReadOnlyList<FavoriteSummaryDto>> GetFavoritesAsync(string userId, CancellationToken ct = default);

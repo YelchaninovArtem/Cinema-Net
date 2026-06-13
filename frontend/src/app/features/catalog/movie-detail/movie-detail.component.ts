@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe, SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,8 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
-import { TranslateModule } from '@ngx-translate/core';
-import { forkJoin } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MovieService } from '../../../core/services/movie.service';
 import { AccountService } from '../../../core/services/account.service';
 import { ReviewService } from '../../../core/services/review.service';
@@ -15,6 +16,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { MovieDetail, Showtime } from '../../../core/models/catalog.models';
 import { MovieReviewsDto, ReviewDto } from '../../../core/models/review.models';
 import { LocalizedDatePipe } from '../../../shared/localized-date.pipe';
+import { LanguageService } from '../../../core/services/language.service';
 
 @Component({
   selector: 'app-movie-detail',
@@ -40,11 +42,20 @@ import { LocalizedDatePipe } from '../../../shared/localized-date.pipe';
                [alt]="movie()!.title" />
           <div class="info">
             <h1>{{ movie()!.title }}</h1>
-            <p class="meta">
-              {{ movie()!.durationMinutes }} min &nbsp;·&nbsp;
-              {{ movie()!.ageRating }} &nbsp;·&nbsp;
-              {{ movie()!.releaseDateUtc | slice:0:10 }}
-            </p>
+            <dl class="meta-list">
+              <div class="meta-item">
+                <dt>{{ 'catalog.detail.duration' | translate }}</dt>
+                <dd>{{ movie()!.durationMinutes }} {{ 'catalog.detail.minutesShort' | translate }}</dd>
+              </div>
+              <div class="meta-item">
+                <dt>{{ 'catalog.detail.ageRating' | translate }}</dt>
+                <dd>{{ movie()!.ageRating }}</dd>
+              </div>
+              <div class="meta-item">
+                <dt>{{ 'catalog.detail.releaseDate' | translate }}</dt>
+                <dd>{{ movie()!.releaseDateUtc | slice:0:10 }}</dd>
+              </div>
+            </dl>
 
             <!-- Рейтинг -->
             @if (reviewData()?.averageRating) {
@@ -203,7 +214,28 @@ import { LocalizedDatePipe } from '../../../shared/localized-date.pipe';
     .poster { width: 220px; height: 330px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
     .info { flex: 1; }
     h1 { margin: 0 0 8px; font-size: 32px; color: #f8fafc; font-family: 'Syne', sans-serif; }
-    .meta { color: #94a3b8; margin-bottom: 12px; font-size: 14px; }
+    .meta-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: #94a3b8;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 14px;
+    }
+    .meta-item dt {
+      color: #4a6080;
+      font-weight: 600;
+    }
+    .meta-item dd {
+      margin: 0;
+      color: #94a3b8;
+    }
     .description { margin: 16px 0; line-height: 1.6; color: #cbd5e1; }
 
     /* Рейтинг */
@@ -452,6 +484,9 @@ export class MovieDetailComponent implements OnInit {
   private readonly movieSvc   = inject(MovieService);
   private readonly accountSvc = inject(AccountService);
   private readonly reviewSvc  = inject(ReviewService);
+  private readonly translate  = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly language   = inject(LanguageService);
   readonly auth               = inject(AuthService);
 
   readonly movie      = signal<MovieDetail | null>(null);
@@ -476,18 +511,24 @@ export class MovieDetailComponent implements OnInit {
   ngOnInit(): void {
     this.movieId = Number(this.route.snapshot.paramMap.get('id'));
 
-    forkJoin({
-      movie:     this.movieSvc.getMovie(this.movieId),
-      showtimes: this.movieSvc.getShowtimes({ movieId: this.movieId }),
-      reviews:   this.reviewSvc.getMovieReviews(this.movieId),
-    }).subscribe({
-      next: ({ movie, showtimes, reviews }) => {
-        this.movie.set(movie);
-        this.showtimes.set(showtimes);
-        this.reviewData.set(reviews);
+    this.language.lang$.pipe(
+      switchMap(lang => {
+        this.loading.set(this.movie() === null);
+        return this.loadPageData(lang).pipe(
+          catchError(() => of(null)),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(data => {
+      if (!data) {
         this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
+        return;
+      }
+
+      this.movie.set(data.movie);
+      this.showtimes.set(data.showtimes);
+      this.reviewData.set(data.reviews);
+      this.loading.set(false);
     });
 
     if (this.auth.isLoggedIn()) {
@@ -543,11 +584,20 @@ export class MovieDetailComponent implements OnInit {
         this.refreshReviews();
       },
     });
+
   }
 
   private refreshReviews(): void {
     this.reviewSvc.getMovieReviews(this.movieId).subscribe({
       next: d => this.reviewData.set(d),
+    });
+  }
+
+  private loadPageData(lang = this.language.currentLang) {
+    return forkJoin({
+      movie:     this.movieSvc.getMovie(this.movieId, lang),
+      showtimes: this.movieSvc.getShowtimes({ movieId: this.movieId }),
+      reviews:   this.reviewSvc.getMovieReviews(this.movieId),
     });
   }
 }

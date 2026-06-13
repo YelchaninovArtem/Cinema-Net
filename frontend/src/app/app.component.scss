@@ -1,5 +1,11 @@
 // ── Navbar ─────────────────────────────────────────────────────────────────
 
+:host {
+  --nav-height: clamp(64px, 4.4vw, 69px);
+  --nav-gutter: clamp(16px, 2.5vw, 48px);
+  display: block;
+}
+
 .navbar {
   position: fixed;
   top: 0;
@@ -14,13 +20,16 @@
 }
 
 .nav-inner {
-  max-width: 1280px;
+  width: 100%;
+  max-width: 1920px;
+  height: var(--nav-height);
   margin: 0 auto;
-  padding: 0 23px;
-  height: 69px;
-  display: flex;
+  padding-inline: var(--nav-gutter);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   align-items: center;
-  gap: 28px;
+  gap: clamp(16px, 2vw, 32px);
 }
 
 // ── Логотип ────────────────────────────────────────────────────────────────
@@ -57,9 +66,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  flex: 1;
-
-  @media (max-width: 720px) { display: none; }
+  min-width: 0;
 }
 
 .nav-link {
@@ -104,9 +111,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-shrink: 0;
-
-  @media (max-width: 720px) { display: none; }
+  min-width: 0;
 }
 
 // Перемикач мови
@@ -223,8 +228,6 @@
   cursor: pointer;
   margin-left: auto;
 
-  @media (max-width: 720px) { display: flex; }
-
   span {
     display: block;
     height: 1.5px;
@@ -242,12 +245,15 @@
 
 // ── Мобільне меню ──────────────────────────────────────────────────────────
 
+.mobile-menu-shell {
+  display: none;
+}
+
 .mobile-menu {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 12px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding: 12px 0 16px;
   animation: slide-down 0.18s ease both;
 }
 
@@ -284,10 +290,137 @@
   margin: 6px 0;
 }
 
+.mobile-menu-footer {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-menu-footer .lang-switcher {
+  width: max-content;
+}
+
+.mobile-logout {
+  width: auto;
+}
+
+.mobile-auth-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mobile-auth-actions .mobile-link {
+  text-align: center;
+}
+
+.mobile-link--primary {
+  background: linear-gradient(135deg, #d4a853 0%, #b8871e 100%);
+  color: #07091a;
+  font-weight: 700;
+}
+
+// ── Responsive navbar ──────────────────────────────────────────────────────
+
+@media (max-width: 1240px) {
+  .nav-inner {
+    gap: 12px;
+  }
+
+  .nav-logo {
+    gap: 8px;
+  }
+
+  .logo-text {
+    font-size: 15px;
+  }
+
+  .nav-link {
+    gap: 6px;
+    padding-inline: 10px;
+    font-size: 14px;
+  }
+
+  .nav-actions {
+    gap: 9px;
+  }
+
+  .user-info {
+    gap: 8px;
+  }
+
+  .user-email {
+    max-width: 120px;
+  }
+
+  .nav-btn {
+    padding-inline: 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .logo-text {
+    display: none;
+  }
+
+  .nav-inner {
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+  }
+}
+
+@media (max-width: 900px) {
+  :host {
+    --nav-gutter: clamp(14px, 4vw, 28px);
+  }
+
+  .nav-inner {
+    grid-template-columns: max-content 1fr max-content;
+  }
+
+  .logo-text {
+    display: inline;
+  }
+
+  .nav-links,
+  .nav-actions {
+    display: none;
+  }
+
+  .burger {
+    display: flex;
+    grid-column: 3;
+  }
+
+  .mobile-menu-shell {
+    display: block;
+    padding-inline: var(--nav-gutter);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mobile-menu {
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .logo-text {
+    max-width: 210px;
+    overflow: hidden;
+    font-size: 14px;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-auth-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 // ── Основний контент ───────────────────────────────────────────────────────
 
 .app-main {
-  --app-content-height: calc(100dvh - 69px);
+  --app-content-height: calc(100dvh - var(--nav-height));
   min-height: var(--app-content-height);
-  padding-top: 69px;
+  padding-top: var(--nav-height);
 }

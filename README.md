@@ -15,10 +15,18 @@ Web application for managing a cinema network: public catalog, online seat booki
 
 ```bash
 git clone <this-repo> cinema && cd cinema
-docker compose up -d                      # MS SQL Server on :1433
+docker compose up -d                      # MS SQL Server on localhost:1443
 dotnet restore backend/Cinema.sln
 npm --prefix frontend ci
 ```
+
+Create a local `.env` file first if you do not have one:
+
+```bash
+cp .env.example .env
+```
+
+The repository tracks only `backend/Cinema.Api/appsettings.json`. Environment-specific appsettings files such as `appsettings.Development.json`, `appsettings.Testing.json`, and local `.env` files are ignored by git.
 
 ### Run backend
 
@@ -42,6 +50,8 @@ npm --prefix frontend start
 
 ### 1. Create `.env` file
 
+Copy `.env.example` to `.env` and fill in real values:
+
 ```dotenv
 MSSQL_SA_PASSWORD=<strong-password>
 JWT_KEY=<at-least-32-character-secret>
@@ -56,6 +66,8 @@ EMAIL_USER=
 EMAIL_PASSWORD=
 ALLOWED_ORIGIN=http://your-domain.com
 ```
+
+Do not commit `.env`; it is intentionally ignored.
 
 ### 2. Build and start
 
@@ -93,6 +105,20 @@ docker compose -f docker-compose.prod.yml down
 ```bash
 dotnet test backend/Cinema.sln            # backend unit + integration
 npm --prefix frontend run test:ci          # frontend unit (headless)
+```
+
+Backend integration tests use Testcontainers to start a temporary SQL Server Docker container. It is stopped when the test factory is disposed, but if the test process is interrupted, Docker Desktop may still show an orphaned test container.
+
+Run only backend unit tests when you do not want Docker containers:
+
+```bash
+dotnet test backend/Cinema.Tests/Cinema.Tests.csproj --filter "FullyQualifiedName~Cinema.Tests.Unit"
+```
+
+Collect backend test coverage:
+
+```bash
+dotnet test backend/Cinema.Tests/Cinema.Tests.csproj --collect:"XPlat Code Coverage"
 ```
 
 ## Project layout

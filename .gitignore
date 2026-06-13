@@ -55,6 +55,7 @@ temp/
 
 ## Generated documents
 /*.pdf
+/backend/_docx_*/
 
 ## OS
 .DS_Store

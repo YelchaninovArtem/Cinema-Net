@@ -4,6 +4,7 @@ using Cinema.Application.Tickets;
 using Cinema.Domain.Entities;
 using Cinema.Domain.Enums;
 using Cinema.Infrastructure;
+using Cinema.Infrastructure.Email;
 using Cinema.Infrastructure.Persistence;
 using Cinema.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
@@ -87,6 +88,20 @@ public sealed class AccountService : IAccountService
         if (ticket.UserId != userId) throw new UnauthorizedAccessException("Access denied.");
         var png = _qr.Generate(ticket.QrToken);
         return new MemoryStream(png);
+    }
+
+    public async Task<byte[]> GetTicketPdfAsync(int ticketId, string userId, CancellationToken ct = default)
+    {
+        var ticket = await _db.Tickets
+            .Include(t => t.Showtime).ThenInclude(s => s.Movie)
+            .Include(t => t.Showtime).ThenInclude(s => s.Hall).ThenInclude(h => h.CinemaBranch)
+            .FirstOrDefaultAsync(t => t.Id == ticketId && t.UserId == userId, ct);
+
+        if (ticket is null)
+            throw new KeyNotFoundException($"Ticket {ticketId} not found.");
+
+        var qrCode = _qr.Generate(ticket.QrToken);
+        return TicketPdfGenerator.Generate(ticket, qrCode);
     }
 
     public async Task<AccountRefundResult> RefundTicketAsync(

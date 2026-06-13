@@ -343,92 +343,126 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
         <mat-tab [label]="'admin.reports' | translate">
           <div class="tab-content">
             <div class="toolbar report-toolbar">
-              <mat-form-field appearance="outline">
-                <mat-label>{{ 'admin.startDate' | translate }}</mat-label>
-                <input matInput [matDatepicker]="startPicker" [(ngModel)]="reportStartDate">
-                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-                <mat-datepicker #startPicker></mat-datepicker>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>{{ 'admin.endDate' | translate }}</mat-label>
-                <input matInput [matDatepicker]="endPicker" [(ngModel)]="reportEndDate">
-                <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-                <mat-datepicker #endPicker></mat-datepicker>
-              </mat-form-field>
-              <button class="report-generate-btn" (click)="loadReports()">
-                <mat-icon>bar_chart</mat-icon>
-                {{ 'admin.generate' | translate }}
-              </button>
-              <div class="export-group">
-                <span class="export-group-label">{{ 'admin.salesReport' | translate }}</span>
-                <button class="export-btn export-pdf" (click)="downloadReport('sales', 'pdf')">
-                  <mat-icon>picture_as_pdf</mat-icon>
-                  PDF
-                </button>
-                <button class="export-btn export-xlsx" (click)="downloadReport('sales', 'xlsx')">
-                  <mat-icon>table_chart</mat-icon>
-                  Excel
+              <div class="report-filter-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'admin.startDate' | translate }}</mat-label>
+                  <input matInput [matDatepicker]="startPicker" [(ngModel)]="reportStartDate" [max]="reportEndDate">
+                  <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startPicker></mat-datepicker>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ 'admin.endDate' | translate }}</mat-label>
+                  <input matInput [matDatepicker]="endPicker" [(ngModel)]="reportEndDate" [min]="reportStartDate">
+                  <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endPicker></mat-datepicker>
+                </mat-form-field>
+                <button type="button" class="report-generate-btn" (click)="loadReports()">
+                  <mat-icon>bar_chart</mat-icon>
+                  <span>{{ 'admin.generate' | translate }}</span>
                 </button>
               </div>
-              <div class="export-group">
-                <span class="export-group-label">{{ 'admin.occupancyReport' | translate }}</span>
-                <button class="export-btn export-pdf" (click)="downloadReport('occupancy', 'pdf')">
-                  <mat-icon>picture_as_pdf</mat-icon>
-                  PDF
-                </button>
-                <button class="export-btn export-xlsx" (click)="downloadReport('occupancy', 'xlsx')">
-                  <mat-icon>table_chart</mat-icon>
-                  Excel
-                </button>
+
+              <div class="report-export-grid">
+                <div class="export-group">
+                  <span class="export-group-label">{{ 'admin.salesReport' | translate }}</span>
+                  <div class="export-actions">
+                    <button type="button" class="export-btn export-pdf" (click)="downloadReport('sales', 'pdf')">
+                      <mat-icon>picture_as_pdf</mat-icon>
+                      <span>PDF</span>
+                    </button>
+                    <button type="button" class="export-btn export-xlsx" (click)="downloadReport('sales', 'xlsx')">
+                      <mat-icon>table_chart</mat-icon>
+                      <span>Excel</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="export-group">
+                  <span class="export-group-label">{{ 'admin.occupancyReport' | translate }}</span>
+                  <div class="export-actions">
+                    <button type="button" class="export-btn export-pdf" (click)="downloadReport('occupancy', 'pdf')">
+                      <mat-icon>picture_as_pdf</mat-icon>
+                      <span>PDF</span>
+                    </button>
+                    <button type="button" class="export-btn export-xlsx" (click)="downloadReport('occupancy', 'xlsx')">
+                      <mat-icon>table_chart</mat-icon>
+                      <span>Excel</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div class="reports-section">
-              <h3>{{ 'admin.salesReport' | translate }}</h3>
-              <table mat-table [dataSource]="sortedSales()" class="admin-table">
-                <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','date')">{{ 'admin.date' | translate }}<span class="sort-icon">{{ sortDir('sales','date') === 'asc' ? '↑' : sortDir('sales','date') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','date')">{{ r.date }}</td>
-                </ng-container>
-                <ng-container matColumnDef="totalBookings">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','totalBookings')">{{ 'admin.totalBookings' | translate }}<span class="sort-icon">{{ sortDir('sales','totalBookings') === 'asc' ? '↑' : sortDir('sales','totalBookings') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','totalBookings')">{{ r.totalBookings }}</td>
-                </ng-container>
-                <ng-container matColumnDef="totalRevenue">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','totalRevenue')">{{ 'admin.totalRevenue' | translate }}<span class="sort-icon">{{ sortDir('sales','totalRevenue') === 'asc' ? '↑' : sortDir('sales','totalRevenue') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','totalRevenue')">{{ r.totalRevenue | currency:'UAH':'symbol':'1.0-0' }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="salesColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: salesColumns;"></tr>
-              </table>
-              @if (salesReport().length === 0) {
-                <p class="no-data">{{ 'admin.noData' | translate }}</p>
-              }
+              <section class="report-card">
+                <header class="report-card-header">
+                  <span class="report-card-icon"><mat-icon>payments</mat-icon></span>
+                  <h3>{{ 'admin.salesReport' | translate }}</h3>
+                </header>
+                <div class="report-table-scroll">
+                  <table mat-table [dataSource]="sortedSales()" class="admin-table report-table sales-table">
+                    <ng-container matColumnDef="date">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','date')">{{ 'admin.date' | translate }}<span class="sort-icon">{{ sortDir('sales','date') === 'asc' ? '↑' : sortDir('sales','date') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','date')">{{ r.date | localizedDate:'dd.MM.yyyy' }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="totalBookings">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','totalBookings')">{{ 'admin.totalBookings' | translate }}<span class="sort-icon">{{ sortDir('sales','totalBookings') === 'asc' ? '↑' : sortDir('sales','totalBookings') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','totalBookings')">{{ r.totalBookings }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="totalRevenue">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('sales','totalRevenue')">{{ 'admin.totalRevenue' | translate }}<span class="sort-icon">{{ sortDir('sales','totalRevenue') === 'asc' ? '↑' : sortDir('sales','totalRevenue') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('sales','totalRevenue')">{{ r.totalRevenue | currency:'UAH':'symbol':'1.0-0' }}</td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="salesColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: salesColumns;"></tr>
+                  </table>
+                </div>
+                @if (salesReport().length === 0) {
+                  <div class="no-data">
+                    <mat-icon>inbox</mat-icon>
+                    <span>{{ 'admin.noData' | translate }}</span>
+                  </div>
+                }
+              </section>
 
-              <h3>{{ 'admin.occupancyReport' | translate }}</h3>
-              <table mat-table [dataSource]="sortedOccupancy()" class="admin-table">
-                <ng-container matColumnDef="hallName">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','hallName')">{{ 'admin.hall' | translate }}<span class="sort-icon">{{ sortDir('occupancy','hallName') === 'asc' ? '↑' : sortDir('occupancy','hallName') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','hallName')">{{ r.hallName }}</td>
-                </ng-container>
-                <ng-container matColumnDef="movieTitle">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','movieTitle')">{{ 'admin.movie' | translate }}<span class="sort-icon">{{ sortDir('occupancy','movieTitle') === 'asc' ? '↑' : sortDir('occupancy','movieTitle') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','movieTitle')">{{ r.movieTitle }}</td>
-                </ng-container>
-                <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','date')">{{ 'admin.date' | translate }}<span class="sort-icon">{{ sortDir('occupancy','date') === 'asc' ? '↑' : sortDir('occupancy','date') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','date')">{{ r.date }}</td>
-                </ng-container>
-                <ng-container matColumnDef="occupancy">
-                  <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','occupancyPercent')">{{ 'admin.occupancy' | translate }}<span class="sort-icon">{{ sortDir('occupancy','occupancyPercent') === 'asc' ? '↑' : sortDir('occupancy','occupancyPercent') === 'desc' ? '↓' : '↕' }}</span></th>
-                  <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','occupancyPercent')">{{ r.occupiedSeats }}/{{ r.totalSeats }} ({{ r.occupancyPercent }}%)</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="occupancyColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: occupancyColumns;"></tr>
-              </table>
-              @if (occupancyReport().length === 0) {
-                <p class="no-data">{{ 'admin.noData' | translate }}</p>
-              }
+              <section class="report-card">
+                <header class="report-card-header">
+                  <span class="report-card-icon"><mat-icon>event_seat</mat-icon></span>
+                  <h3>{{ 'admin.occupancyReport' | translate }}</h3>
+                </header>
+                <div class="report-table-scroll">
+                  <table mat-table [dataSource]="sortedOccupancy()" class="admin-table report-table occupancy-table">
+                    <ng-container matColumnDef="hallName">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','hallName')">{{ 'admin.hall' | translate }}<span class="sort-icon">{{ sortDir('occupancy','hallName') === 'asc' ? '↑' : sortDir('occupancy','hallName') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','hallName')">{{ r.hallName }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="movieTitle">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','movieTitle')">{{ 'admin.movie' | translate }}<span class="sort-icon">{{ sortDir('occupancy','movieTitle') === 'asc' ? '↑' : sortDir('occupancy','movieTitle') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','movieTitle')">{{ r.movieTitle }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="date">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','date')">{{ 'admin.date' | translate }}<span class="sort-icon">{{ sortDir('occupancy','date') === 'asc' ? '↑' : sortDir('occupancy','date') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','date')">{{ r.date | localizedDate:'dd.MM.yyyy' }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="occupancy">
+                      <th mat-header-cell *matHeaderCellDef class="sortable" (click)="setSort('occupancy','occupancyPercent')">{{ 'admin.occupancy' | translate }}<span class="sort-icon">{{ sortDir('occupancy','occupancyPercent') === 'asc' ? '↑' : sortDir('occupancy','occupancyPercent') === 'desc' ? '↓' : '↕' }}</span></th>
+                      <td mat-cell *matCellDef="let r" [class.sort-col]="sortDir('occupancy','occupancyPercent')">
+                        <div class="occupancy-value">
+                          <span>{{ r.occupiedSeats }}/{{ r.totalSeats }} ({{ r.occupancyPercent }}%)</span>
+                          <span class="occupancy-meter"><span [style.width.%]="r.occupancyPercent"></span></span>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="occupancyColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: occupancyColumns;"></tr>
+                  </table>
+                </div>
+                @if (occupancyReport().length === 0) {
+                  <div class="no-data">
+                    <mat-icon>inbox</mat-icon>
+                    <span>{{ 'admin.noData' | translate }}</span>
+                  </div>
+                }
+              </section>
             </div>
           </div>
         </mat-tab>
@@ -773,8 +807,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'validation.time' | translate }}</mat-label>
-                <input matInput [ngxTimepicker]="picker" [(ngModel)]="showtimeTime" name="time" required>
-                <ngx-material-timepicker #picker [theme]="timepickerTheme" [format]="24" [defaultTime]="'12:00'"></ngx-material-timepicker>
+                <input matInput type="time" step="300" [(ngModel)]="showtimeTime" name="time" required>
               </mat-form-field>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'admin.format' | translate }}</mat-label>
@@ -1130,110 +1163,6 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       border-color: rgba(251,191,36,0.6);
       box-shadow: 0 0 12px rgba(251,191,36,0.2);
       transform: translateY(-1px);
-    }
-
-    .report-toolbar {
-      align-items: center;
-    }
-
-    .report-generate-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 20px;
-      height: 42px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.18s, transform 0.18s;
-    }
-    .report-generate-btn:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
-    }
-    .report-generate-btn mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-
-    .export-group {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .export-group-label {
-      padding: 0 12px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #64748b;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      height: 42px;
-      display: flex;
-      align-items: center;
-    }
-
-    .export-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 0 14px;
-      height: 42px;
-      border: none;
-      border-left: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.04);
-      color: #94a3b8;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-    .export-btn mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-    .export-btn:first-of-type {
-      border-left: none;
-    }
-    .export-pdf:hover {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-    }
-    .export-xlsx:hover {
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-    }
-
-    .reports-section {
-      margin-top: 32px;
-    }
-
-    .reports-section h3 {
-      color: #f8fafc;
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      margin: 24px 0 16px;
-    }
-
-    .no-data {
-      color: #64748b;
-      text-align: center;
-      padding: 40px;
-      font-size: 14px;
     }
 
     .dialog-overlay {
@@ -2166,7 +2095,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ── Sort state per table ──
-  private readonly sortState = signal<Record<string, { col: string; dir: 'asc' | 'desc' }>>({});
+  private readonly sortState = signal<Record<string, { col: string; dir: 'asc' | 'desc' }>>({
+    showtimes: { col: 'startUtc', dir: 'desc' },
+  });
 
   private sorted<T>(key: string, rows: T[]): T[] {
     const s = this.sortState()[key];

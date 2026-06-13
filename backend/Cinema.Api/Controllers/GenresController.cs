@@ -12,9 +12,13 @@ public sealed class GenresController : ControllerBase
 
     public GenresController(IGenreQueryService genres) => _genres = genres;
 
-    [HttpGet]
+    [NonAction]
     public async Task<IActionResult> GetGenres(CancellationToken ct) =>
         Ok(await _genres.GetAllAsync(ct));
+
+    [HttpGet]
+    public async Task<IActionResult> GetGenres([FromQuery] string? lang = null, CancellationToken ct = default) =>
+        Ok(await _genres.GetAllAsync(lang, ct));
 
     [HttpPost("ensure")]
     [Authorize(Roles = "Admin")]

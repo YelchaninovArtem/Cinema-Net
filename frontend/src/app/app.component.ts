@@ -2,10 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from './core/auth/auth.service';
-
-const LANGUAGE_STORAGE_KEY = 'cinema.lang';
-const SUPPORTED_LANGS = ['en', 'uk'] as const;
-type SupportedLang = (typeof SUPPORTED_LANGS)[number];
+import { LanguageService, SupportedLang } from './core/services/language.service';
 
 @Component({
   selector: 'app-root',
@@ -15,22 +12,22 @@ type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 })
 export class AppComponent {
   private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
   readonly auth = inject(AuthService);
-  readonly languages = SUPPORTED_LANGS;
+  readonly languages = this.language.supportedLangs;
 
   currentLang: SupportedLang;
   mobileOpen = false;
 
   constructor() {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) as SupportedLang | null;
-    this.currentLang = stored && SUPPORTED_LANGS.includes(stored) ? stored : 'en';
-    this.translate.addLangs([...SUPPORTED_LANGS]);
+    this.currentLang = this.language.currentLang;
+    this.translate.addLangs([...this.languages]);
     this.translate.use(this.currentLang);
   }
 
   switchLanguage(lang: SupportedLang): void {
     this.currentLang = lang;
     this.translate.use(lang);
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    this.language.setLanguage(lang);
   }
 }

@@ -1,4 +1,5 @@
 using Cinema.Application.Movies;
+using Cinema.Application.Localization;
 using Cinema.Domain.Enums;
 using Cinema.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,25 @@ namespace Cinema.Infrastructure.Queries;
 public sealed class MovieQueryService : IMovieQueryService
 {
     private readonly CinemaDbContext _db;
+    private readonly IContentLocalizationService _localizer;
 
-    public MovieQueryService(CinemaDbContext db) => _db = db;
+    public MovieQueryService(CinemaDbContext db)
+        : this(db, new PassthroughContentLocalizationService())
+    {
+    }
+
+    public MovieQueryService(CinemaDbContext db, IContentLocalizationService localizer)
+    {
+        _db = db;
+        _localizer = localizer;
+    }
+
+    public Task<IReadOnlyList<MovieSummaryDto>> GetMoviesAsync(
+        MovieFilters filters, CancellationToken ct = default) =>
+        GetMoviesAsync(filters, null, ct);
 
     public async Task<IReadOnlyList<MovieSummaryDto>> GetMoviesAsync(
-        MovieFilters filters, CancellationToken ct = default)
+        MovieFilters filters, string? language, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -75,14 +90,17 @@ public sealed class MovieQueryService : IMovieQueryService
             m.PosterUrl,
             m.DurationMinutes,
             m.AgeRating.ToString(),
-            m.Genres.Select(g => g.Name).OrderBy(n => n).ToList(),
+            _localizer.LocalizeGenres(m.Genres.Select(g => g.Name), language),
             formatsMap.TryGetValue(m.Id, out var fmts)
                 ? fmts.Select(FormatToString).Order().ToList()
                 : []
         )).ToList();
     }
 
-    public async Task<MovieDetailDto?> GetMovieByIdAsync(int id, CancellationToken ct = default)
+    public Task<MovieDetailDto?> GetMovieByIdAsync(int id, CancellationToken ct = default) =>
+        GetMovieByIdAsync(id, null, ct);
+
+    public async Task<MovieDetailDto?> GetMovieByIdAsync(int id, string? language, CancellationToken ct = default)
     {
         var m = await _db.Movies
             .Include(m => m.Genres)
@@ -94,13 +112,13 @@ public sealed class MovieQueryService : IMovieQueryService
         return new MovieDetailDto(
             m.Id,
             m.Title,
-            m.Description,
+            await _localizer.LocalizeMovieDescriptionAsync(m.Description, language, ct),
             m.PosterUrl,
             m.TrailerUrl,
             m.DurationMinutes,
             m.AgeRating.ToString(),
             m.ReleaseDateUtc,
-            m.Genres.Select(g => g.Name).OrderBy(n => n).ToList()
+            _localizer.LocalizeGenres(m.Genres.Select(g => g.Name), language)
         );
     }
 
@@ -120,4 +138,11 @@ public sealed class MovieQueryService : IMovieQueryService
         MovieFormat.Imax   => "IMAX",
         _                  => f.ToString()
     };
+
+    private sealed class PassthroughContentLocalizationService : IContentLocalizationService
+    {
+        public string NormalizeLanguage(string? language) => "en";
+        public IReadOnlyList<string> LocalizeGenres(IEnumerable<string> genres, string? language) => genres.OrderBy(g => g).ToList();
+        public Task<string> LocalizeMovieDescriptionAsync(string description, string? language, CancellationToken ct = default) => Task.FromResult(description);
+    }
 }

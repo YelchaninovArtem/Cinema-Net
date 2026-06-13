@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -19,15 +19,14 @@ import { AuthService } from '../../../core/auth/auth.service';
         </div>
 
         <h1 class="success-title">{{ 'payment.successTitle' | translate }}</h1>
-        <p class="success-msg">{{ 'payment.successMsg' | translate }}</p>
+        <p class="success-msg">
+          {{ (auth.isLoggedIn() ? 'payment.successMsg' : 'payment.successMsgGuest') | translate }}
+        </p>
 
         @if (movieTitle()) {
-          <div class="success-movie">{{ movieTitle() }}</div>
-        }
-
-        @if (ticketIds().length > 0) {
-          <div class="success-tickets">
-            <span class="success-tickets-label">{{ 'buy.ticketCount' | translate }}: {{ ticketIds().length }}</span>
+          <div class="success-movie">
+            <span class="success-movie-label">{{ ticketsForMovieKey() | translate }}</span>
+            <strong class="success-movie-title">{{ movieTitle() }}</strong>
           </div>
         }
 
@@ -91,20 +90,25 @@ import { AuthService } from '../../../core/auth/auth.service';
     }
     .success-msg { margin: 0; font-size: 14px; color: #64748b; line-height: 1.6; }
     .success-movie {
-      padding: 8px 20px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 20px;
       background: rgba(212,168,83,0.08);
       border: 1px solid rgba(212,168,83,0.2);
-      border-radius: 20px;
-      font-size: 13px; font-weight: 600; color: #d4a853;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
-    .success-tickets {
-      padding: 8px 16px;
-      background: rgba(52,211,153,0.06);
-      border: 1px solid rgba(52,211,153,0.15);
-      border-radius: 8px;
-      font-size: 13px; color: #6ee7b7;
+    .success-movie-label {
+      font-size: 12px;
+      color: #94a3b8;
     }
-    .success-tickets-label { font-weight: 600; }
+    .success-movie-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      color: #d4a853;
+    }
     .success-actions {
       display: flex; flex-direction: column; gap: 10px;
       width: 100%; margin-top: 8px;
@@ -139,12 +143,15 @@ export class BuySuccessComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthService);
 
-  readonly ticketIds  = signal<number[]>([]);
   readonly movieTitle = signal('');
+  readonly ticketCount = signal(0);
+  readonly ticketsForMovieKey = computed(() =>
+    this.ticketCount() === 1 ? 'payment.ticketForMovie' : 'payment.ticketsForMovie'
+  );
 
   ngOnInit(): void {
     const ids = this.route.snapshot.queryParamMap.get('ticketIds') ?? '';
-    this.ticketIds.set(ids ? ids.split(',').map(Number).filter(Boolean) : []);
+    this.ticketCount.set(ids ? ids.split(',').map(Number).filter(Boolean).length : 0);
     this.movieTitle.set(this.route.snapshot.queryParamMap.get('movie') ?? '');
   }
 }

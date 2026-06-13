@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Мережа кінотеатрів",
+    "title": "Cinema Network",
     "slogan": "Бронюй місце, живи кіно"
   },
   "nav": {
@@ -74,6 +74,12 @@
     "noShowtimes": "Найближчих сеансів немає.",
     "movieNotFound": "Фільм не знайдено.",
     "back": "Назад до фільмів",
+    "detail": {
+      "duration": "Тривалість",
+      "ageRating": "Віковий рейтинг",
+      "releaseDate": "Дата виходу",
+      "minutesShort": "хв"
+    },
     "filter": {
       "title": "Назва фільму",
       "city": "Місто",
@@ -109,11 +115,18 @@
       "taken": "Зайнято"
     }
   },
+  "seatMap": {
+    "type": {
+      "standard": "Стандартне",
+      "vip": "VIP",
+      "love": "Розкладне сидіння"
+    }
+  },
   "payment": {
     "title": "Оберіть спосіб оплати",
     "bookingRef": "Бронювання",
     "total": "Разом",
-    "stripe": "Картою (Stripe)",
+    "stripe": "Карткою",
     "paypal": "PayPal",
     "payNow": "Оплатити",
     "redirectToPayPal": "Перейти до PayPal",
@@ -128,6 +141,9 @@
     "errorNotFound": "Бронювання не знайдено.",
     "successTitle": "Оплата успішна!",
     "successMsg": "Ваші квитки готові. Перевірте пошту або зайдіть у Мій кабінет.",
+    "successMsgGuest": "Ваші квитки готові. Перевірте пошту.",
+    "ticketForMovie": "Квиток придбано на фільм",
+    "ticketsForMovie": "Квитки придбано на фільм",
     "viewTickets": "Мої квитки",
     "promoPlaceholder": "Промокод",
     "promoApply": "Застосувати",
@@ -169,6 +185,7 @@
     "payNow": "Оплатити",
     "viewShowtime": "До фільму",
     "viewSession": "Цей сеанс",
+    "downloadTicket": "Завантажити квиток",
     "refundTicket": "Повернути квиток",
     "refunding": "Повернення...",
     "refundSuccess": "Квиток повернено.",
@@ -204,7 +221,7 @@
     "loginToReview": "Увійдіть, щоб залишити відгук"
   },
   "admin": {
-    "title": "Панель адміна",
+    "title": "Панель адміністратора",
     "cinemas": "Кінотеатри",
     "halls": "Зали",
     "movies": "Фільми",
@@ -334,8 +351,7 @@
     "cashierPurchaseNotAllowed": "Акаунт касира не може купувати квитки через клієнтську оплату. Для продажу квитків використайте розділ «Продаж у касі» в панелі касира.",
     "orPayByCard": "або оплатіть карткою",
     "cardDetails": "Дані картки",
-    "backToSeats": "Назад до вибору місць",
-    "ticketCount": "Квиток(ів)"
+    "backToSeats": "Назад до вибору місць"
   },
   "cashier": {
     "title": "Панель касира",
@@ -377,6 +393,8 @@
       "refund": "Повернути",
       "confirm": "Підтвердити повернення {{amount}} грн за квиток з номером №{{id}}?",
       "success": "Квиток з номером №{{id}} успішно повернуто.",
+      "completedTitle": "Повернення виконано",
+      "completedMessage": "Квиток №{{id}} повернено. Сума повернення: {{amount}} грн.",
       "cannotRefund": "Цей квиток не може бути повернутий (статус: {{status}}).",
       "movie": "Фільм",
       "showtime": "Сеанс",
