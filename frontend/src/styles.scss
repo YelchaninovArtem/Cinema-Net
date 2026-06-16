@@ -176,6 +176,23 @@ html, body {
   z-index: 10000000 !important;
 }
 
+.showtime-minute-picker ngx-material-timepicker-minutes-face {
+  .clock-face__number > span.minute-dot-label {
+    background: transparent !important;
+    color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .clock-face__number > span.minute-dot-label:hover {
+    background: rgba(99, 102, 241, 0.12) !important;
+  }
+
+  .clock-face__number > span.minute-dot-label.active {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
 /* Admin reports */
 .report-toolbar {
   display: grid !important;

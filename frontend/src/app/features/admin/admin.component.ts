@@ -103,9 +103,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="cinemaColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: cinemaColumns;"></tr>
-              @if (cinemas().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="cinemas().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -115,10 +113,26 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
             <div class="toolbar">
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>{{ 'admin.cinema' | translate }}</mat-label>
-                <mat-select [(ngModel)]="hallCinemaFilter" (selectionChange)="loadHalls()">
+                <mat-select
+                  [(ngModel)]="hallCinemaFilter"
+                  (selectionChange)="loadHalls()"
+                  (openedChange)="focusSelectSearch($event, hallFilterCinemaSearchInput)">
+                  <div class="select-search" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <mat-icon>search</mat-icon>
+                    <input
+                      #hallFilterCinemaSearchInput
+                      [(ngModel)]="hallFilterCinemaSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'admin.searchCinema' | translate"
+                      autocomplete="off"
+                      (keydown.enter)="$event.preventDefault()">
+                  </div>
                   <mat-option [value]="null">{{ 'admin.allCinemas' | translate }}</mat-option>
-                  @for (c of cinemas(); track c.id) {
+                  @for (c of filteredHallFilterCinemas(); track c.id) {
                     <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                  }
+                  @if (filteredHallFilterCinemas().length === 0) {
+                    <mat-option disabled>{{ 'admin.noSearchResults' | translate }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -158,9 +172,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="hallColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: hallColumns;"></tr>
-              @if (halls().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="halls().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -210,9 +222,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="movieColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: movieColumns;"></tr>
-              @if (movies().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="movies().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -222,10 +232,26 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
             <div class="toolbar">
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>{{ 'admin.cinema' | translate }}</mat-label>
-                <mat-select [(ngModel)]="showtimeCinemaFilter" (selectionChange)="loadShowtimes()">
+                <mat-select
+                  [(ngModel)]="showtimeCinemaFilter"
+                  (selectionChange)="loadShowtimes()"
+                  (openedChange)="focusSelectSearch($event, showtimeFilterCinemaSearchInput)">
+                  <div class="select-search" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <mat-icon>search</mat-icon>
+                    <input
+                      #showtimeFilterCinemaSearchInput
+                      [(ngModel)]="showtimeFilterCinemaSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'admin.searchCinema' | translate"
+                      autocomplete="off"
+                      (keydown.enter)="$event.preventDefault()">
+                  </div>
                   <mat-option [value]="null">{{ 'admin.allCinemas' | translate }}</mat-option>
-                  @for (c of cinemas(); track c.id) {
+                  @for (c of filteredShowtimeFilterCinemas(); track c.id) {
                     <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                  }
+                  @if (filteredShowtimeFilterCinemas().length === 0) {
+                    <mat-option disabled>{{ 'admin.noSearchResults' | translate }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -273,9 +299,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="showtimeColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: showtimeColumns;"></tr>
-              @if (showtimes().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="showtimes().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -333,9 +357,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="promoColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: promoColumns;"></tr>
-              @if (promoCodes().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="promoCodes().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -509,9 +531,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="staffColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: staffColumns;"></tr>
-              @if (staffUsers().length === 0) {
-                <tr mat-footer-row *matFooterRowDef="['empty']"></tr>
-              }
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="staffUsers().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -565,7 +585,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="reviewColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: reviewColumns;"></tr>
-              <tr mat-footer-row *matFooterRowDef="['empty']" [style.display]="pendingReviews().length === 0 ? '' : 'none'"></tr>
+              <tr mat-footer-row *matFooterRowDef="['empty']" [class.empty-row-hidden]="pendingReviews().length > 0"></tr>
             </table>
           </div>
         </mat-tab>
@@ -575,6 +595,9 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showStaffDialog()) {
         <div class="dialog-overlay" (click)="closeStaffDialog()">
           <div class="dialog-content" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closeStaffDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ 'admin.addStaff' | translate }}</h2>
             <form (ngSubmit)="saveStaff()">
               <mat-form-field appearance="outline" class="full-width">
@@ -612,6 +635,9 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showCinemaDialog()) {
         <div class="dialog-overlay" (click)="closeCinemaDialog()">
           <div class="dialog-content" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closeCinemaDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ editingCinema() ? ('admin.editCinema' | translate) : ('admin.addCinema' | translate) }}</h2>
             <form (ngSubmit)="saveCinema()">
               <mat-form-field appearance="outline" class="full-width">
@@ -638,13 +664,34 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showHallDialog()) {
         <div class="dialog-overlay" (click)="closeHallDialog()">
           <div class="dialog-content dialog-wide" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closeHallDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ editingHall() ? ('admin.editHall' | translate) : ('admin.addHall' | translate) }}</h2>
             <form (ngSubmit)="saveHall()">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'admin.cinema' | translate }}</mat-label>
-                <mat-select [(ngModel)]="hallForm.cinemaBranchId" name="cinemaBranchId" required [disabled]="editingHall() !== null">
-                  @for (c of cinemas(); track c.id) {
+                <mat-select
+                  [(ngModel)]="hallForm.cinemaBranchId"
+                  name="cinemaBranchId"
+                  required
+                  [disabled]="editingHall() !== null"
+                  (openedChange)="focusSelectSearch($event, hallCinemaSearchInput)">
+                  <div class="select-search" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <mat-icon>search</mat-icon>
+                    <input
+                      #hallCinemaSearchInput
+                      [(ngModel)]="hallCinemaSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'admin.searchCinema' | translate"
+                      autocomplete="off"
+                      (keydown.enter)="$event.preventDefault()">
+                  </div>
+                  @for (c of filteredDialogCinemas(); track c.id) {
                     <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                  }
+                  @if (filteredDialogCinemas().length === 0) {
+                    <mat-option disabled>{{ 'admin.noSearchResults' | translate }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -720,6 +767,9 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showMovieDialog()) {
         <div class="dialog-overlay" (click)="closeMovieDialog()">
           <div class="dialog-content" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closeMovieDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ editingMovie() ? ('admin.editMovie' | translate) : ('admin.addMovie' | translate) }}</h2>
             <form (ngSubmit)="saveMovie()">
               <mat-form-field appearance="outline" class="full-width">
@@ -780,21 +830,58 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showShowtimeDialog()) {
         <div class="dialog-overlay" (click)="closeShowtimeDialog()">
           <div class="dialog-content" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closeShowtimeDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ editingShowtime() ? ('admin.editShowtime' | translate) : ('admin.addShowtime' | translate) }}</h2>
             <form (ngSubmit)="saveShowtime()">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'admin.movie' | translate }}</mat-label>
-                <mat-select [(ngModel)]="showtimeForm.movieId" name="movieId" required>
-                  @for (m of movies(); track m.id) {
+                <mat-select
+                  [(ngModel)]="showtimeForm.movieId"
+                  name="movieId"
+                  required
+                  (openedChange)="focusSelectSearch($event, showtimeMovieSearchInput)">
+                  <div class="select-search" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <mat-icon>search</mat-icon>
+                    <input
+                      #showtimeMovieSearchInput
+                      [(ngModel)]="showtimeMovieSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'admin.searchMovie' | translate"
+                      autocomplete="off"
+                      (keydown.enter)="$event.preventDefault()">
+                  </div>
+                  @for (m of filteredDialogMovies(); track m.id) {
                     <mat-option [value]="m.id">{{ m.title }}</mat-option>
+                  }
+                  @if (filteredDialogMovies().length === 0) {
+                    <mat-option disabled>{{ 'admin.noSearchResults' | translate }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'admin.hall' | translate }}</mat-label>
-                <mat-select [(ngModel)]="showtimeForm.hallId" name="hallId" required>
-                  @for (h of filteredHalls(); track h.id) {
+                <mat-select
+                  [(ngModel)]="showtimeForm.hallId"
+                  name="hallId"
+                  required
+                  (openedChange)="focusSelectSearch($event, showtimeHallSearchInput)">
+                  <div class="select-search" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <mat-icon>search</mat-icon>
+                    <input
+                      #showtimeHallSearchInput
+                      [(ngModel)]="showtimeHallSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'admin.searchHall' | translate"
+                      autocomplete="off"
+                      (keydown.enter)="$event.preventDefault()">
+                  </div>
+                  @for (h of filteredDialogHalls(); track h.id) {
                     <mat-option [value]="h.id">{{ h.hallName }} ({{ h.cinemaName }})</mat-option>
+                  }
+                  @if (filteredDialogHalls().length === 0) {
+                    <mat-option disabled>{{ 'admin.noSearchResults' | translate }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -807,8 +894,24 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'validation.time' | translate }}</mat-label>
-                <input matInput type="time" step="300" [(ngModel)]="showtimeTime" name="time" required>
+                <input
+                  matInput
+                  readonly
+                  [(ngModel)]="showtimeTime"
+                  [ngxTimepicker]="showtimePicker"
+                  name="time"
+                  required>
+                <mat-icon matSuffix (click)="showtimePicker.open()">schedule</mat-icon>
               </mat-form-field>
+              <ngx-material-timepicker
+                #showtimePicker
+                [format]="24"
+                [minutesGap]="1"
+                [theme]="timepickerTheme"
+                timepickerClass="showtime-minute-picker"
+                (opened)="startMinuteFaceStyling()"
+                (closed)="stopMinuteFaceStyling()">
+              </ngx-material-timepicker>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'admin.format' | translate }}</mat-label>
                 <mat-select [(ngModel)]="showtimeForm.format" name="format" required>
@@ -842,6 +945,9 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       @if (showPromoDialog()) {
         <div class="dialog-overlay" (click)="closePromoDialog()">
           <div class="dialog-content" (click)="$event.stopPropagation()">
+            <button class="dialog-close" type="button" (click)="closePromoDialog()" [attr.aria-label]="'admin.close' | translate" [matTooltip]="'admin.close' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
             <h2>{{ editingPromo() ? ('admin.editPromo' | translate) : ('admin.addPromo' | translate) }}</h2>
             <form (ngSubmit)="savePromo()">
               <mat-form-field appearance="outline" class="full-width">
@@ -1040,6 +1146,17 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       --mat-form-field-container-height: 50px;
     }
 
+    .filter-field ::ng-deep .mat-mdc-form-field-infix {
+      min-height: 50px;
+      padding-top: 13px;
+      padding-bottom: 13px;
+    }
+
+    .filter-field ::ng-deep .mat-mdc-select-trigger {
+      height: 24px;
+      align-items: center;
+    }
+
     ::ng-deep .mat-mdc-button,
     ::ng-deep .mat-mdc-outlined-button,
     ::ng-deep .mat-mdc-unelevated-button {
@@ -1178,6 +1295,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
     }
 
     .dialog-content {
+      position: relative;
       background: #1e293b;
       border-radius: 16px;
       padding: 28px;
@@ -1185,6 +1303,44 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       max-width: 480px;
       max-height: 90vh;
       overflow-y: auto;
+    }
+
+    .dialog-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.45);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: color 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .dialog-close mat-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+    }
+
+    .dialog-close:hover {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(129, 140, 248, 0.65);
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .dialog-close:focus-visible {
+      outline: 2px solid #818cf8;
+      outline-offset: 2px;
     }
 
     .dialog-wide {
@@ -1196,7 +1352,7 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
       font-family: 'Syne', sans-serif;
       font-size: 20px;
       font-weight: 700;
-      margin: 0 0 24px;
+      margin: 0 48px 24px 0;
     }
 
     .full-width {
@@ -1302,6 +1458,41 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
 
     ::ng-deep .mat-mdc-select-panel {
       background: #1e293b !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .select-search {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: #172033;
+      color: #94a3b8;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .select-search mat-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .select-search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #f8fafc;
+      font: inherit;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .select-search input::placeholder {
+      color: #64748b;
     }
 
     ::ng-deep .mat-mdc-option {
@@ -1603,6 +1794,12 @@ type AdminTab = 'cinemas' | 'halls' | 'movies' | 'showtimes' | 'promos' | 'repor
 
     ::ng-deep .mat-mdc-footer-row {
       background: transparent !important;
+    }
+
+    ::ng-deep .mat-mdc-footer-row.empty-row-hidden {
+      display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
     }
 
     ::ng-deep .mat-mdc-footer-cell {
@@ -2152,6 +2349,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   hallCinemaFilter: number | null = null;
   showtimeCinemaFilter: number | null = null;
+  hallFilterCinemaSearch = '';
+  showtimeFilterCinemaSearch = '';
 
   reportStartDate = new Date();
   reportEndDate = new Date();
@@ -2163,6 +2362,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   showHallDialog = signal(false);
   editingHall = signal<HallAdminDto | null>(null);
   hallForm = { cinemaBranchId: 0, name: '', rows: 5, cols: 8, layout: this.createLayout(5, 8) };
+  hallCinemaSearch = '';
 
   showMovieDialog = signal(false);
   editingMovie = signal<MovieAdminDto | null>(null);
@@ -2173,6 +2373,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   showtimeForm = { movieId: 0, hallId: 0, startUtc: '', format: 'TwoD', basePrice: 200 };
   showtimeDate = new Date();
   showtimeTime = '12:00';
+  showtimeMovieSearch = '';
+  showtimeHallSearch = '';
   hours = 12;
   minutes = 0;
   isAM = true;
@@ -2188,6 +2390,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     container: { bodyBackgroundColor: '#0f172a', buttonColor: '#6366f1' }
   };
   private timepickerRef: any;
+  private minuteFaceObserver?: MutationObserver;
   private _onTouchMove!: (e: TouchEvent) => void;
   private _onTouchStart!: (e: TouchEvent) => void;
 
@@ -2199,6 +2402,38 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.timepickerRef) {
       this.timepickerRef.open();
     }
+  }
+
+  startMinuteFaceStyling(): void {
+    this.stopMinuteFaceStyling();
+    this.minuteFaceObserver = new MutationObserver(() => this.styleMinuteFace());
+    this.minuteFaceObserver.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => this.styleMinuteFace());
+  }
+
+  stopMinuteFaceStyling(): void {
+    this.minuteFaceObserver?.disconnect();
+    this.minuteFaceObserver = undefined;
+  }
+
+  private styleMinuteFace(): void {
+    const minuteLabels = document.querySelectorAll<HTMLElement>(
+      '.showtime-minute-picker ngx-material-timepicker-minutes-face .clock-face__number > span'
+    );
+
+    minuteLabels.forEach(label => {
+      if (label.dataset['minuteStyled']) return;
+
+      const minute = Number(label.textContent?.trim());
+      if (!Number.isInteger(minute)) return;
+
+      label.dataset['minuteStyled'] = 'true';
+      if (minute % 5 !== 0) {
+        label.textContent = '';
+        label.classList.add('minute-dot-label');
+        label.setAttribute('aria-label', minute.toString().padStart(2, '0'));
+      }
+    });
   }
 
   setHours(h: number) {
@@ -2401,6 +2636,57 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.halls().filter(h => h.cinemaBranchId === this.showtimeCinemaFilter);
   }
 
+  filteredDialogCinemas(): CinemaAdminDto[] {
+    const query = this.hallCinemaSearch.trim().toLocaleLowerCase();
+    return query
+      ? this.cinemas().filter(cinema =>
+          cinema.id === this.hallForm.cinemaBranchId
+          || cinema.name.toLocaleLowerCase().includes(query))
+      : this.cinemas();
+  }
+
+  filteredHallFilterCinemas(): CinemaAdminDto[] {
+    return this.filterCinemas(this.hallFilterCinemaSearch, this.hallCinemaFilter);
+  }
+
+  filteredShowtimeFilterCinemas(): CinemaAdminDto[] {
+    return this.filterCinemas(this.showtimeFilterCinemaSearch, this.showtimeCinemaFilter);
+  }
+
+  private filterCinemas(queryValue: string, selectedId: number | null): CinemaAdminDto[] {
+    const query = queryValue.trim().toLocaleLowerCase();
+    return query
+      ? this.cinemas().filter(cinema =>
+          cinema.id === selectedId
+          || cinema.name.toLocaleLowerCase().includes(query))
+      : this.cinemas();
+  }
+
+  filteredDialogMovies(): MovieAdminDto[] {
+    const query = this.showtimeMovieSearch.trim().toLocaleLowerCase();
+    return query
+      ? this.movies().filter(movie =>
+          movie.id === this.showtimeForm.movieId
+          || movie.title.toLocaleLowerCase().includes(query))
+      : this.movies();
+  }
+
+  filteredDialogHalls(): HallAdminDto[] {
+    const query = this.showtimeHallSearch.trim().toLocaleLowerCase();
+    const halls = this.filteredHalls();
+    return query
+      ? halls.filter(hall =>
+          hall.id === this.showtimeForm.hallId
+          || hall.hallName.toLocaleLowerCase().includes(query)
+          || hall.cinemaName.toLocaleLowerCase().includes(query))
+      : halls;
+  }
+
+  focusSelectSearch(opened: boolean, input: HTMLInputElement): void {
+    if (!opened) return;
+    setTimeout(() => input.focus());
+  }
+
   // Cinema
   openCinemaDialog(c?: CinemaAdminDto) {
     if (c) {
@@ -2451,12 +2737,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Hall
   openHallDialog(h?: HallAdminDto) {
     if (this.cinemas().length === 0) this.loadCinemas();
+    this.hallCinemaSearch = '';
     if (h) {
       this.editingHall.set(h);
       this.hallForm = { cinemaBranchId: h.cinemaBranchId, name: h.hallName, rows: h.rows, cols: h.cols, layout: JSON.parse(JSON.stringify(h.layout)) };
     } else {
       this.editingHall.set(null);
-      this.hallForm = { cinemaBranchId: this.cinemas()[0]?.id || 0, name: '', rows: 5, cols: 8, layout: this.createLayout(5, 8) };
+      this.hallForm = {
+        cinemaBranchId: this.hallCinemaFilter ?? this.cinemas()[0]?.id ?? 0,
+        name: '',
+        rows: 5,
+        cols: 8,
+        layout: this.createLayout(5, 8)
+      };
     }
     this.showHallDialog.set(true);
   }
@@ -2648,6 +2941,8 @@ saveHall() {
   openShowtimeDialog(s?: ShowtimeAdminDto) {
     if (this.movies().length === 0) this.loadMovies();
     if (this.halls().length === 0) this.loadHalls();
+    this.showtimeMovieSearch = '';
+    this.showtimeHallSearch = '';
     if (s) {
       this.editingShowtime.set(s);
       const date = new Date(s.startUtc);

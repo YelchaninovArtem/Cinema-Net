@@ -1,4 +1,5 @@
 using Cinema.Domain.Entities;
+using Cinema.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +14,11 @@ public sealed class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>
         builder.HasOne(f => f.Movie)
                .WithMany()
                .HasForeignKey(f => f.MovieId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<ApplicationUser>()
+               .WithMany()
+               .HasForeignKey(f => f.UserId)
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -1,4 +1,5 @@
 using Cinema.Domain.Entities;
+using Cinema.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +11,10 @@ public sealed class LoyaltyAccountConfiguration : IEntityTypeConfiguration<Loyal
     {
         builder.HasKey(a => a.UserId);
         builder.Property(a => a.UserId).HasMaxLength(450);
+        builder.HasOne<ApplicationUser>()
+            .WithOne()
+            .HasForeignKey<LoyaltyAccount>(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

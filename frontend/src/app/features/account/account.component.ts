@@ -179,7 +179,7 @@ type Tab = 'tickets' | 'favorites' | 'reviews' | 'loyalty';
                             </div>
                             <div class="qr-info-row">
                               <span class="qr-label">{{ 'account.row' | translate }} {{ detail.seat.row }}, {{ 'account.seat' | translate }} {{ detail.seat.col }}</span>
-                              <span class="qr-type">{{ detail.seat.type }}</span>
+                              <span class="qr-type">{{ seatTypeTranslationKey(detail.seat.type) | translate }}</span>
                             </div>
                             <div class="qr-info-row">
                               <span class="qr-hall">{{ detail.hallName }}</span>
@@ -812,6 +812,19 @@ export class AccountComponent implements OnInit {
 
   ticketQrUrl(id: number): string | null {
     return this.qrBlobUrls()[id] ?? null;
+  }
+
+  seatTypeTranslationKey(type: string): string {
+    switch (type.trim().toLowerCase()) {
+      case 'vip':
+        return 'seatMap.type.vip';
+      case 'love':
+      case 'loveseat':
+      case 'reclining':
+        return 'seatMap.type.love';
+      default:
+        return 'seatMap.type.standard';
+    }
   }
 
   toggleExpand(id: number): void {

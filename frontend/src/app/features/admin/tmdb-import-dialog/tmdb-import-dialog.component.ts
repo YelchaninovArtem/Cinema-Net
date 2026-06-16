@@ -6,9 +6,11 @@ import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
@@ -53,13 +55,25 @@ interface Genre { id: number; name: string; }
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
     MatTabsModule,
     MatSelectModule,
+    MatTooltipModule,
     TranslateModule,
   ],
   template: `
-    <h2 mat-dialog-title>{{ 'tmdb.dialogTitle' | translate }}</h2>
+    <div class="dialog-title-row">
+      <h2 mat-dialog-title>{{ 'tmdb.dialogTitle' | translate }}</h2>
+      <button
+        class="dialog-close"
+        type="button"
+        (click)="close()"
+        [attr.aria-label]="'admin.close' | translate"
+        [matTooltip]="'admin.close' | translate">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
     <mat-dialog-content class="tmdb-content">
       <mat-tab-group>
 
@@ -204,6 +218,52 @@ interface Genre { id: number; name: string; }
     h2[mat-dialog-title],
     ::ng-deep .mat-mdc-dialog-title { color: #f0f0f0 !important; }
 
+    .dialog-title-row {
+      position: relative;
+    }
+
+    .dialog-title-row h2 {
+      margin-right: 48px;
+    }
+
+    .dialog-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.45);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: color 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .dialog-close mat-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+    }
+
+    .dialog-close:hover {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(129, 140, 248, 0.65);
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .dialog-close:focus-visible {
+      outline: 2px solid #818cf8;
+      outline-offset: 2px;
+    }
+
     /* Dialog shell */
     .tmdb-content {
       min-width: 520px;
@@ -330,6 +390,10 @@ export class TmdbImportDialogComponent implements OnInit {
     { code: 'zh', label: 'Chinese' },
     { code: 'hi', label: 'Hindi' },
   ];
+
+  close(): void {
+    this.dialogRef.close();
+  }
 
   ngOnInit(): void {
     this.loadGenres();
